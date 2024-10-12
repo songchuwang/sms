@@ -1,11 +1,12 @@
 import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
+import type { ActionType, ProColumns, ProDescriptionsActionType } from '@ant-design/pro-components';
 import {
   FooterToolbar,
   ModalForm,
   PageContainer,
   ProDescriptions,
+  ProFormRadio,
   ProFormText,
   ProFormTextArea,
   ProTable,
@@ -84,11 +85,16 @@ const handleRemove = async (selectedRows: API.RuleListItem[]) => {
   }
 };
 const TableList: React.FC = () => {
+  const actionDesRef = useRef<ProDescriptionsActionType>();
   /**
    * @en-US Pop-up window of new window
    * @zh-CN 新建窗口的弹窗
    *  */
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
+
+  const [examineModalOpen, handleExamineModalOpen] = useState<boolean>(false);
+
+  const [notesModalOpen, handleNotesModalOpen] = useState<boolean>(false);
   /**
    * @en-US The pop-up window of the distribution update window
    * @zh-CN 分布更新窗口的弹窗
@@ -218,15 +224,34 @@ const TableList: React.FC = () => {
         <a
           key="config"
           onClick={() => {
-            handleUpdateModalOpen(true);
+            handleExamineModalOpen(true);
             setCurrentRow(record);
           }}
         >
           审核
         </a>,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
+        <a
+          onClick={() => {
+            // handleNotesModalOpen(true);
+            setShowDetail(true);
+            setCurrentRow(record);
+          }}
+          key="subscribeAlert"
+        >
           备注
         </a>,
+        // render: (dom, entity) => {
+        //   return (
+        //     <a
+        //       onClick={() => {
+        //         setCurrentRow(entity);
+        //         setShowDetail(true);
+        //       }}
+        //     >
+        //       {dom}
+        //     </a>
+        //   );
+        // },
       ],
     },
   ];
@@ -316,6 +341,108 @@ const TableList: React.FC = () => {
         />
         <ProFormTextArea width="md" name="desc" />
       </ModalForm>
+      <ModalForm
+        title={'短信审核'}
+        width="400px"
+        open={examineModalOpen}
+        onOpenChange={handleExamineModalOpen}
+        onFinish={async (value) => {
+          const success = await handleAdd(value as API.RuleListItem);
+          if (success) {
+            handleExamineModalOpen(false);
+            if (actionRef.current) {
+              actionRef.current.reload();
+            }
+          }
+        }}
+      >
+        <ProFormRadio.Group
+          name="type"
+          label={''}
+          options={[
+            {
+              value: '0',
+              label: '通过，允许发送短信',
+            },
+            {
+              value: '1',
+              label: '驳回，不允许发送短信',
+            },
+          ]}
+        />
+        {/* <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '规则名称为必填项',
+            },
+          ]}
+          width="md"
+          name="name"
+        /> */}
+        <ProFormTextArea
+          width="md"
+          name="desc"
+          placeholder="请输入驳回原因"
+          rules={[
+            {
+              required: true,
+              message: '请输入驳回原因',
+            },
+          ]}
+        />
+      </ModalForm>
+      <ModalForm
+        title={'备注'}
+        width="400px"
+        open={notesModalOpen}
+        onOpenChange={handleNotesModalOpen}
+        // onFinish={async (value) => {
+        //   const success = await handleAdd(value as API.RuleListItem);
+        //   if (success) {
+        //     handleExamineModalOpen(false);
+        //     if (actionRef.current) {
+        //       actionRef.current.reload();
+        //     }
+        //   }
+        // }}
+      >
+        <ProFormRadio.Group
+          name="type"
+          label={''}
+          options={[
+            {
+              value: '0',
+              label: '通过，允许发送短信',
+            },
+            {
+              value: '1',
+              label: '驳回，不允许发送短信',
+            },
+          ]}
+        />
+        {/* <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '规则名称为必填项',
+            },
+          ]}
+          width="md"
+          name="name"
+        /> */}
+        <ProFormTextArea
+          width="md"
+          name="desc"
+          placeholder="请输入驳回原因"
+          rules={[
+            {
+              required: true,
+              message: '请输入驳回原因',
+            },
+          ]}
+        />
+      </ModalForm>
       <UpdateForm
         onSubmit={async (value) => {
           const success = await handleUpdate(value);
@@ -346,7 +473,44 @@ const TableList: React.FC = () => {
         }}
         closable={false}
       >
-        {currentRow?.name && (
+        <ProDescriptions
+          actionRef={actionDesRef}
+          title="高级定义列表 request"
+          column={1}
+          request={async () => {
+            return Promise.resolve({
+              success: true,
+              data: {
+                id: '这是一段文本2',
+                date: '20200730',
+                money: '12121',
+                reason: '原因',
+                reason2: '原因2',
+              },
+            });
+          }}
+          // extra={<Button type="link">修改</Button>}
+        >
+          <ProDescriptions.Item dataIndex="id" label="审核人" />
+          <ProDescriptions.Item dataIndex="date" label="日期" valueType="date" />
+          <ProDescriptions.Item dataIndex="reason" label="审核未通过原因" />
+          <ProDescriptions.Item dataIndex="date" label="短信发送时间" />
+          <ProDescriptions.Item dataIndex="reason2" label="发送失败原因" />
+          <ProDescriptions.Item label="money" dataIndex="money" valueType="money" />
+          {/* <ProDescriptions.Item label="文本" valueType="option">
+            <Button
+              type="primary"
+              onClick={() => {
+                actionRef.current?.reload();
+              }}
+              key="reload"
+            >
+              刷新
+            </Button>
+            <Button key="rest">重置</Button>
+          </ProDescriptions.Item> */}
+        </ProDescriptions>
+        {/* {currentRow?.name && (
           <ProDescriptions<API.RuleListItem>
             column={2}
             title={currentRow?.name}
@@ -358,7 +522,7 @@ const TableList: React.FC = () => {
             }}
             columns={columns as ProDescriptionsItemProps<API.RuleListItem>[]}
           />
-        )}
+        )} */}
       </Drawer>
     </PageContainer>
   );

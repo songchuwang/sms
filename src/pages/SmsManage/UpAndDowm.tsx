@@ -1,20 +1,21 @@
 import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
-import { PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, VerticalAlignBottomOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
   FooterToolbar,
   ModalForm,
   PageContainer,
   ProDescriptions,
-  ProFormText,
-  ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
 import { Button, Drawer, Input, message } from 'antd';
+
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
+
+const { TextArea } = Input;
 
 /**
  * @en-US Add node
@@ -191,10 +192,7 @@ const TableList: React.FC = () => {
             setCurrentRow(record);
           }}
         >
-          审核
-        </a>,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
-          备注
+          回复
         </a>,
       ],
     },
@@ -216,7 +214,16 @@ const TableList: React.FC = () => {
               handleModalOpen(true);
             }}
           >
-            <PlusOutlined /> 新建
+            <EditOutlined /> 批量回复
+          </Button>,
+          <Button
+            type="primary"
+            key="primary"
+            onClick={() => {
+              handleModalOpen(true);
+            }}
+          >
+            <VerticalAlignBottomOutlined /> 导出
           </Button>,
         ]}
         request={rule}
@@ -259,8 +266,8 @@ const TableList: React.FC = () => {
         </FooterToolbar>
       )}
       <ModalForm
-        title={'新建规则'}
-        width="400px"
+        title={'批量回复'}
+        width="500px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
@@ -273,17 +280,13 @@ const TableList: React.FC = () => {
           }
         }}
       >
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '规则名称为必填项',
-            },
-          ]}
-          width="md"
-          name="name"
+        <TextArea
+          showCount
+          maxLength={500}
+          placeholder="请输入回复内容"
+          style={{ height: 100, resize: 'none', marginBottom: '20px' }}
         />
-        <ProFormTextArea width="md" name="desc" />
+        {/* <ProFormTextArea placeholder={"请输入回复内容"} width="lg" name="desc" /> */}
       </ModalForm>
       <UpdateForm
         onSubmit={async (value) => {

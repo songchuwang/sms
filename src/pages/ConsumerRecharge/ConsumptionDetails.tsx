@@ -1,5 +1,5 @@
 import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
-import { PlusOutlined } from '@ant-design/icons';
+import { VerticalAlignBottomOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
   FooterToolbar,
@@ -212,7 +212,7 @@ const TableList: React.FC = () => {
               handleModalOpen(true);
             }}
           >
-            <PlusOutlined /> 新建
+            <VerticalAlignBottomOutlined /> 导出
           </Button>,
         ]}
         request={rule}
