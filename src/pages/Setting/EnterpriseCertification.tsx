@@ -1,366 +1,306 @@
-import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
-import { PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
+import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import {
-  FooterToolbar,
-  ModalForm,
   PageContainer,
-  ProDescriptions,
+  ProForm,
+  ProFormDateRangePicker,
+  ProFormDependency,
+  ProFormDigit,
+  ProFormRadio,
+  ProFormSelect,
   ProFormText,
   ProFormTextArea,
-  ProTable,
 } from '@ant-design/pro-components';
-import '@umijs/max';
-import { Button, Drawer, Input, message } from 'antd';
-import React, { useRef, useState } from 'react';
-import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
+import { useRequest } from '@umijs/max';
+import { Button, Card, Cascader, Form, message, Upload } from 'antd';
+import type { FC } from 'react';
+import { fakeSubmitForm } from './components/service';
+import useStyles from './components/style.style';
 
-/**
- * @en-US Add node
- * @zh-CN 添加节点
- * @param fields
- */
-const handleAdd = async (fields: API.RuleListItem) => {
-  const hide = message.loading('正在添加');
-  try {
-    await addRule({
-      ...fields,
-    });
-    hide();
-    message.success('Added successfully');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Adding failed, please try again!');
-    return false;
-  }
-};
-
-/**
- * @en-US Update node
- * @zh-CN 更新节点
- *
- * @param fields
- */
-const handleUpdate = async (fields: FormValueType) => {
-  const hide = message.loading('Configuring');
-  try {
-    await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
-    });
-    hide();
-    message.success('Configuration is successful');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Configuration failed, please try again!');
-    return false;
-  }
-};
-
-/**
- *  Delete node
- * @zh-CN 删除节点
- *
- * @param selectedRows
- */
-const handleRemove = async (selectedRows: API.RuleListItem[]) => {
-  const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
-  try {
-    await removeRule({
-      key: selectedRows.map((row) => row.key),
-    });
-    hide();
-    message.success('Deleted successfully and will refresh soon');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Delete failed, please try again');
-    return false;
-  }
-};
-const TableList: React.FC = () => {
-  /**
-   * @en-US Pop-up window of new window
-   * @zh-CN 新建窗口的弹窗
-   *  */
-  const [createModalOpen, handleModalOpen] = useState<boolean>(false);
-  /**
-   * @en-US The pop-up window of the distribution update window
-   * @zh-CN 分布更新窗口的弹窗
-   * */
-  const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
-  const [showDetail, setShowDetail] = useState<boolean>(false);
-  const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
-
-  /**
-   * @en-US International configuration
-   * @zh-CN 国际化配置
-   * */
-
-  const columns: ProColumns<API.RuleListItem>[] = [
-    {
-      title: '任务编号',
-      dataIndex: 'name',
-      tip: 'The rule name is the unique key',
-      search: false,
-    },
-    {
-      title: '短信内容',
-      dataIndex: 'content',
-      valueType: 'textarea',
-    },
-    {
-      title: '发送方式',
-      dataIndex: 'content',
-      valueType: 'textarea',
-      search: false,
-    },
-    {
-      title: '发送时间',
-      dataIndex: 'content',
-      valueType: 'textarea',
-      search: false,
-    },
-    {
-      title: '发送号码数',
-      dataIndex: 'content',
-      valueType: 'textarea',
-      search: false,
-    },
-    {
-      title: '短信条数',
-      dataIndex: 'content',
-      valueType: 'textarea',
-      search: false,
-    },
-    {
-      title: '预估计费金额（元）',
-      dataIndex: 'content',
-      valueType: 'textarea',
-      search: false,
-    },
-    {
-      title: '发送成功短信（条）',
-      dataIndex: 'content',
-      valueType: 'textarea',
-      search: false,
-    },
-    {
-      title: '发送失败短信（条）',
-      dataIndex: 'content',
-      valueType: 'textarea',
-      search: false,
-    },
-    {
-      title: '创建时间',
-      sorter: true,
-      dataIndex: 'updatedAt',
-      valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder={'请输入异常原因！'} />;
-        }
-        return defaultRender(item);
-      },
-    },
-    {
-      title: '创建人',
-      dataIndex: 'desc',
-      valueType: 'textarea',
-    },
-    {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val: string) => `${val}${'万'}`,
-      search: false,
-    },
-    {
-      title: '任务状态',
-      dataIndex: 'status',
-      hideInForm: true,
-      valueEnum: {
-        0: {
-          text: '关闭',
-          status: 'Default',
-        },
-        1: {
-          text: '运行中',
-          status: 'Processing',
-        },
-        2: {
-          text: '已上线',
-          status: 'Success',
-        },
-        3: {
-          text: '异常',
-          status: 'Error',
-        },
-      },
-    },
-    {
-      title: '操作',
-      dataIndex: 'option',
-      valueType: 'option',
-      render: (_, record) => [
-        <a
-          key="config"
-          onClick={() => {
-            handleUpdateModalOpen(true);
-            setCurrentRow(record);
-          }}
-        >
-          审核
-        </a>,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
-          备注
-        </a>,
-      ],
-    },
-  ];
-  return (
-    <PageContainer>
-      <ProTable<API.RuleListItem, API.PageParams>
-        headerTitle={'查询表格'}
-        actionRef={actionRef}
-        rowKey="key"
-        search={{
-          labelWidth: 120,
-        }}
-        toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleModalOpen(true);
-            }}
-          >
-            <PlusOutlined /> 新建
-          </Button>,
-        ]}
-        request={rule}
-        columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
+const options = [
+  {
+    value: 'zhejiang',
+    label: 'Zhejiang',
+    children: [
+      {
+        value: 'hangzhou',
+        label: 'Hangzhou',
+        children: [
+          {
+            value: 'xihu',
+            label: 'West Lake',
           },
-        }}
-      />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              已选择{' '}
-              <a
-                style={{
-                  fontWeight: 600,
-                }}
-              >
-                {selectedRowsState.length}
-              </a>{' '}
-              项 &nbsp;&nbsp;
-              <span>
-                服务调用次数总计 {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)} 万
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            批量删除
-          </Button>
-          <Button type="primary">批量审批</Button>
-        </FooterToolbar>
-      )}
-      <ModalForm
-        title={'新建规则'}
-        width="400px"
-        open={createModalOpen}
-        onOpenChange={handleModalOpen}
-        onFinish={async (value) => {
-          const success = await handleAdd(value as API.RuleListItem);
-          if (success) {
-            handleModalOpen(false);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-        }}
-      >
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '规则名称为必填项',
-            },
-          ]}
-          width="md"
-          name="name"
-        />
-        <ProFormTextArea width="md" name="desc" />
-      </ModalForm>
-      <UpdateForm
-        onSubmit={async (value) => {
-          const success = await handleUpdate(value);
-          if (success) {
-            handleUpdateModalOpen(false);
-            setCurrentRow(undefined);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-        }}
-        onCancel={() => {
-          handleUpdateModalOpen(false);
-          if (!showDetail) {
-            setCurrentRow(undefined);
-          }
-        }}
-        updateModalOpen={updateModalOpen}
-        values={currentRow || {}}
-      />
+        ],
+      },
+    ],
+  },
+  {
+    value: 'jiangsu',
+    label: 'Jiangsu',
+    children: [
+      {
+        value: 'nanjing',
+        label: 'Nanjing',
+        children: [
+          {
+            value: 'zhonghuamen',
+            label: 'Zhong Hua Men',
+          },
+        ],
+      },
+    ],
+  },
+];
 
-      <Drawer
-        width={600}
-        open={showDetail}
-        onClose={() => {
-          setCurrentRow(undefined);
-          setShowDetail(false);
-        }}
-        closable={false}
-      >
-        {currentRow?.name && (
-          <ProDescriptions<API.RuleListItem>
-            column={2}
-            title={currentRow?.name}
-            request={async () => ({
-              data: currentRow || {},
-            })}
-            params={{
-              id: currentRow?.name,
-            }}
-            columns={columns as ProDescriptionsItemProps<API.RuleListItem>[]}
+const BasicForm: FC<Record<string, any>> = () => {
+  const { styles } = useStyles();
+  const { run } = useRequest(fakeSubmitForm, {
+    manual: true,
+    onSuccess: () => {
+      message.success('提交成功');
+    },
+  });
+  const onFinish = async (values: Record<string, any>) => {
+    run(values);
+  };
+  const onChange = (value) => {
+    console.log(value);
+  };
+  const normFile = (e) => {
+    if (Array.isArray(e)) {
+      return e;
+    }
+    return e?.fileList;
+  };
+  const normFile2 = (e) => {
+    console.log('Upload event:', e);
+    if (Array.isArray(e)) {
+      return e;
+    }
+    return e?.fileList;
+  };
+  return (
+    <PageContainer content="表单页用于向用户收集或验证信息，基础表单常见于数据项较少的表单场景。">
+      <Card bordered={false}>
+        <ProForm
+          hideRequiredMark
+          style={{
+            margin: 'auto',
+            marginTop: 8,
+            maxWidth: 600,
+          }}
+          name="basic"
+          layout="vertical"
+          initialValues={{
+            public: '1',
+          }}
+          onFinish={onFinish}
+        >
+          <ProFormText
+            width="md"
+            label="公司名称"
+            name="name"
+            rules={[
+              {
+                required: true,
+                message: '公司名称未填写',
+              },
+            ]}
+            placeholder="请输入公司名称"
           />
-        )}
-      </Drawer>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <span style={{ marginBottom: 5 }}>公司地址</span>
+            <Cascader
+              style={{ marginBottom: 15, width: 330 }}
+              options={options}
+              onChange={onChange}
+              placeholder="Please select"
+            />
+          </div>
+
+          <ProFormText
+            width="md"
+            label="详细地址"
+            name="name"
+            rules={[
+              {
+                required: true,
+                message: '详细地址未填写',
+              },
+            ]}
+            placeholder="请输入公司详细地址"
+          />
+
+          <Form.Item label="Upload" valuePropName="fileList" getValueFromEvent={normFile}>
+            <Upload action="/upload.do" listType="picture-card">
+              <button
+                style={{
+                  border: 0,
+                  background: 'none',
+                }}
+                type="button"
+              >
+                <PlusOutlined />
+                <div
+                  style={{
+                    marginTop: 8,
+                  }}
+                >
+                  Upload
+                </div>
+              </button>
+            </Upload>
+          </Form.Item>
+
+          <Form.Item
+            name="upload"
+            label="授权书"
+            valuePropName="fileList"
+            getValueFromEvent={normFile2}
+            // extra="longgggggggggggggggggggggggggggggggggg"
+            style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
+              <Upload name="logo" action="/upload.do" listType="picture">
+                <Button type="primary" icon={<UploadOutlined />}>
+                  点击上传
+                </Button>
+              </Upload>
+              <Button type="link">下载授权书</Button>
+            </div>
+          </Form.Item>
+          <ProFormDateRangePicker
+            label="起止日期"
+            width="md"
+            name="date"
+            rules={[
+              {
+                required: true,
+                message: '请选择起止日期',
+              },
+            ]}
+            placeholder={['开始日期', '结束日期']}
+          />
+          <ProFormTextArea
+            label="目标描述"
+            width="xl"
+            name="goal"
+            rules={[
+              {
+                required: true,
+                message: '请输入目标描述',
+              },
+            ]}
+            placeholder="请输入你的阶段性工作目标"
+          />
+
+          <ProFormTextArea
+            label="衡量标准"
+            name="standard"
+            width="xl"
+            rules={[
+              {
+                required: true,
+                message: '请输入衡量标准',
+              },
+            ]}
+            placeholder="请输入衡量标准"
+          />
+
+          <ProFormText
+            width="md"
+            label={
+              <span>
+                客户
+                <em className={styles.optional}>（选填）</em>
+              </span>
+            }
+            tooltip="目标的服务对象"
+            name="client"
+            placeholder="请描述你服务的客户，内部客户直接 @姓名／工号"
+          />
+
+          <ProFormText
+            width="md"
+            label={
+              <span>
+                邀评人
+                <em className={styles.optional}>（选填）</em>
+              </span>
+            }
+            name="invites"
+            placeholder="请直接 @姓名／工号，最多可邀请 5 人"
+          />
+
+          <ProFormDigit
+            label={
+              <span>
+                权重
+                <em className={styles.optional}>（选填）</em>
+              </span>
+            }
+            name="weight"
+            placeholder="请输入"
+            min={0}
+            max={100}
+            width="xs"
+            fieldProps={{
+              formatter: (value) => `${value || 0}%`,
+              parser: (value) => Number(value ? value.replace('%', '') : '0'),
+            }}
+          />
+
+          <ProFormRadio.Group
+            options={[
+              {
+                value: '1',
+                label: '公开',
+              },
+              {
+                value: '2',
+                label: '部分公开',
+              },
+              {
+                value: '3',
+                label: '不公开',
+              },
+            ]}
+            label="目标公开"
+            help="客户、邀评人默认被分享"
+            name="publicType"
+          />
+          <ProFormDependency name={['publicType']}>
+            {({ publicType }) => {
+              return (
+                <ProFormSelect
+                  width="md"
+                  name="publicUsers"
+                  fieldProps={{
+                    style: {
+                      margin: '8px 0',
+                      display: publicType && publicType === '2' ? 'block' : 'none',
+                    },
+                  }}
+                  options={[
+                    {
+                      value: '1',
+                      label: '同事甲',
+                    },
+                    {
+                      value: '2',
+                      label: '同事乙',
+                    },
+                    {
+                      value: '3',
+                      label: '同事丙',
+                    },
+                  ]}
+                />
+              );
+            }}
+          </ProFormDependency>
+        </ProForm>
+      </Card>
     </PageContainer>
   );
 };
-export default TableList;
+export default BasicForm;

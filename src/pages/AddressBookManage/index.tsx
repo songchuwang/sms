@@ -13,7 +13,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Card, Col, Drawer, Input, Menu, message, Row } from 'antd';
+import { Button, Card, Col, Drawer, Menu, message, Row } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
@@ -141,109 +141,43 @@ const TableList: React.FC = () => {
 
   const columns: ProColumns<API.RuleListItem>[] = [
     {
-      title: '任务编号',
-      dataIndex: 'name',
+      title: '序号',
+      dataIndex: 'index',
       tip: 'The rule name is the unique key',
       search: false,
     },
     {
-      title: '短信内容',
+      title: '姓名',
       dataIndex: 'content',
       valueType: 'textarea',
     },
     {
-      title: '发送方式',
+      title: '手机号',
       dataIndex: 'content',
       valueType: 'textarea',
-      search: false,
     },
     {
-      title: '发送时间',
+      title: '所属公司',
       dataIndex: 'content',
       valueType: 'textarea',
-      search: false,
     },
     {
-      title: '发送号码数',
-      dataIndex: 'content',
-      valueType: 'textarea',
-      search: false,
-    },
-    {
-      title: '短信条数',
+      title: '公司职位',
       dataIndex: 'content',
       valueType: 'textarea',
       search: false,
     },
     {
-      title: '预估计费金额（元）',
+      title: '邮箱',
       dataIndex: 'content',
       valueType: 'textarea',
       search: false,
     },
     {
-      title: '发送成功短信（条）',
+      title: '通讯组',
       dataIndex: 'content',
       valueType: 'textarea',
       search: false,
-    },
-    {
-      title: '发送失败短信（条）',
-      dataIndex: 'content',
-      valueType: 'textarea',
-      search: false,
-    },
-    {
-      title: '创建时间',
-      sorter: true,
-      dataIndex: 'updatedAt',
-      valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder={'请输入异常原因！'} />;
-        }
-        return defaultRender(item);
-      },
-    },
-    {
-      title: '创建人',
-      dataIndex: 'desc',
-      valueType: 'textarea',
-    },
-    {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val: string) => `${val}${'万'}`,
-      search: false,
-    },
-    {
-      title: '任务状态',
-      dataIndex: 'status',
-      hideInForm: true,
-      valueEnum: {
-        0: {
-          text: '关闭',
-          status: 'Default',
-        },
-        1: {
-          text: '运行中',
-          status: 'Processing',
-        },
-        2: {
-          text: '已上线',
-          status: 'Success',
-        },
-        3: {
-          text: '异常',
-          status: 'Error',
-        },
-      },
     },
     {
       title: '操作',
@@ -257,7 +191,7 @@ const TableList: React.FC = () => {
             setCurrentRow(record);
           }}
         >
-          审核
+          编辑
         </a>,
         <a
           onClick={() => {
@@ -267,7 +201,7 @@ const TableList: React.FC = () => {
           }}
           key="subscribeAlert"
         >
-          备注
+          删除
         </a>,
         // render: (dom, entity) => {
         //   return (
@@ -301,7 +235,25 @@ const TableList: React.FC = () => {
               handleModalOpen(true);
             }}
           >
-            <PlusOutlined /> 新建
+            <PlusOutlined /> 移动分组
+          </Button>,
+          <Button
+            type="primary"
+            key="primary"
+            onClick={() => {
+              handleModalOpen(true);
+            }}
+          >
+            <PlusOutlined /> 批量删除
+          </Button>,
+          <Button
+            type="primary"
+            key="primary"
+            onClick={() => {
+              handleModalOpen(true);
+            }}
+          >
+            <PlusOutlined /> 导出列表
           </Button>,
         ]}
         request={rule}
@@ -651,18 +603,6 @@ const Center: React.FC = () => {
               >
                 <PlusOutlined /> 新建分组
               </Button>
-              {/* <div className={styles.groupItem}>
-                <span>分组1(1000)</span>
-                <EditOutlined />
-              </div>
-              <div className={styles.groupItem}>
-                <span>分组1(1000)</span>
-                <EditOutlined />
-              </div>
-              <div className={styles.groupItem}>
-                <span>分组1(1000)</span>
-                <EditOutlined />
-              </div> */}
               <Menu
                 // onClick={onClick}
                 // style={{
