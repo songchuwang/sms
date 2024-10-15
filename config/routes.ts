@@ -14,7 +14,7 @@ export default [
       { path: '/smsManage', redirect: '/smsManage/sub-page' },
       { path: '/smsManage/smsList', name: '短信列表', component: './SmsManage/SmsList' },
       { path: '/smsManage/upAndDowm', name: '上下行', component: './SmsManage/UpAndDowm' },
-      // { name: '查询表格', icon: 'table', path: '/list', component: './TableList' },
+      { path: '/smsManage/sendSms', name: '发送短信', component: './SmsManage/SendSms' },
     ],
   },
   {
