@@ -3,11 +3,10 @@ import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
 import { LinkOutlined, MutedOutlined } from '@ant-design/icons';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { SettingDrawer } from '@ant-design/pro-components';
-import type { RunTimeLayoutConfig } from '@umijs/max';
+import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link } from '@umijs/max';
 import { Button } from 'antd';
 import defaultSettings from '../config/defaultSettings';
-import { errorConfig } from './requestErrorConfig';
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
 
@@ -141,12 +140,32 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     ...initialState?.settings,
   };
 };
+const trimQuotes = (str: string): string => {
+  return str.trim().replace(/^"|"$/g, '');
+};
 
 /**
  * @name request 配置，可以配置错误处理
  * 它基于 axios 和 ahooks 的 useRequest 提供了一套统一的网络请求和错误处理方案。
  * @doc https://umijs.org/docs/max/request#配置
  */
-export const request = {
-  ...errorConfig,
+
+const authHeaderInterceptor = async (url: string, options: RequestConfig) => {
+  let token = await localStorage.getItem('token');
+  const authHeader = { Authorization: 'Bearer TOKEN' };
+  if (token) {
+    authHeader['token'] = trimQuotes(token);
+  }
+  return {
+    url: `${url}`,
+    options: { ...options, interceptors: true, headers: authHeader },
+  };
 };
+
+export const request: RequestConfig = {
+  // 新增自动添加AccessToken的请求前拦截器
+  requestInterceptors: [authHeaderInterceptor],
+};
+// export const request = {
+//   ...errorConfig,
+// };

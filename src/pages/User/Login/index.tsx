@@ -1,20 +1,8 @@
 import { Footer } from '@/components';
 import { login } from '@/services/ant-design-pro/api';
 import { getFakeCaptcha } from '@/services/ant-design-pro/login';
-import {
-  AlipayCircleOutlined,
-  LockOutlined,
-  MobileOutlined,
-  TaobaoCircleOutlined,
-  UserOutlined,
-  WeiboCircleOutlined,
-} from '@ant-design/icons';
-import {
-  LoginForm,
-  ProFormCaptcha,
-  ProFormCheckbox,
-  ProFormText,
-} from '@ant-design/pro-components';
+import { LockOutlined, MobileOutlined, UserOutlined } from '@ant-design/icons';
+import { LoginForm, ProFormCaptcha, ProFormText } from '@ant-design/pro-components';
 import { Helmet, history, useModel } from '@umijs/max';
 import { Alert, Button, Form, Input, message, Tabs } from 'antd';
 import { createStyles } from 'antd-style';
@@ -56,16 +44,16 @@ const useStyles = createStyles(({ token }) => {
     },
   };
 });
-const ActionIcons = () => {
-  const { styles } = useStyles();
-  return (
-    <>
-      <AlipayCircleOutlined key="AlipayCircleOutlined" className={styles.action} />
-      <TaobaoCircleOutlined key="TaobaoCircleOutlined" className={styles.action} />
-      <WeiboCircleOutlined key="WeiboCircleOutlined" className={styles.action} />
-    </>
-  );
-};
+// const ActionIcons = () => {
+//   const { styles } = useStyles();
+//   return (
+//     <>
+//       <AlipayCircleOutlined key="AlipayCircleOutlined" className={styles.action} />
+//       <TaobaoCircleOutlined key="TaobaoCircleOutlined" className={styles.action} />
+//       <WeiboCircleOutlined key="WeiboCircleOutlined" className={styles.action} />
+//     </>
+//   );
+// };
 // const Lang = () => {
 //   return;
 // };
@@ -85,12 +73,14 @@ const LoginMessage: React.FC<{
 };
 const Login: React.FC = () => {
   const [userLoginState, setUserLoginState] = useState<API.LoginResult>({});
-  const [type, setType] = useState<string>('account');
+  const [loginType, setType] = useState<string>('account');
   const { initialState, setInitialState } = useModel('@@initialState');
   const [step, setStep] = useState<string>('1');
   const { styles } = useStyles();
-  const fetchUserInfo = async () => {
-    const userInfo = await initialState?.fetchUserInfo?.();
+  const fetchUserInfo = async (userInfo: any) => {
+    // const userInfo = await initialState?.fetchUserInfo?.();
+    console.log('initialState', initialState);
+
     if (userInfo) {
       flushSync(() => {
         setInitialState((s) => ({
@@ -104,16 +94,21 @@ const Login: React.FC = () => {
     console.log('Received values of form: ', values);
   };
   const handleSubmit = async (values: API.LoginParams) => {
+    console.log('handleSubmit', values, loginType);
+
     try {
       // 登录
       const msg = await login({
         ...values,
-        type,
+        // type,
       });
-      if (msg.status === 'ok') {
+      console.log('【msg】', msg);
+
+      if (msg.code === '200') {
         const defaultLoginSuccessMessage = '登录成功！';
         message.success(defaultLoginSuccessMessage);
-        await fetchUserInfo();
+        localStorage.setItem('token', JSON.stringify(msg?.data?.token));
+        await fetchUserInfo(msg.data);
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
         return;
@@ -127,7 +122,9 @@ const Login: React.FC = () => {
       message.error(defaultLoginFailureMessage);
     }
   };
-  const { status, type: loginType } = userLoginState;
+  const { code } = userLoginState;
+  console.log('userLoginState', userLoginState, loginType);
+
   return (
     <div className={styles.container}>
       <Helmet>
@@ -213,16 +210,18 @@ const Login: React.FC = () => {
             logo={<img alt="logo" src="/logo.svg" />}
             title="Ant Design"
             subTitle={'Ant Design 是西湖区最具影响力的 Web 设计规范'}
-            initialValues={{
-              autoLogin: true,
-            }}
-            actions={['其他登录方式 :', <ActionIcons key="icons" />]}
+            initialValues={
+              {
+                // autoLogin: false,
+              }
+            }
+            actions={[]}
             onFinish={async (values) => {
               await handleSubmit(values as API.LoginParams);
             }}
           >
             <Tabs
-              activeKey={type}
+              activeKey={loginType}
               onChange={setType}
               centered
               items={[
@@ -237,18 +236,18 @@ const Login: React.FC = () => {
               ]}
             />
 
-            {status === 'error' && loginType === 'account' && (
-              <LoginMessage content={'错误的用户名和密码(admin/ant.design)'} />
+            {(code === '400' || code === '404') && loginType === 'account' && (
+              <LoginMessage content={userLoginState.msg} />
             )}
-            {type === 'account' && (
+            {loginType === 'account' && (
               <>
                 <ProFormText
-                  name="username"
+                  name="account"
                   fieldProps={{
                     size: 'large',
                     prefix: <UserOutlined />,
                   }}
-                  placeholder={'用户名: admin or user'}
+                  placeholder={'请输入用户名'}
                   rules={[
                     {
                       required: true,
@@ -262,7 +261,7 @@ const Login: React.FC = () => {
                     size: 'large',
                     prefix: <LockOutlined />,
                   }}
-                  placeholder={'密码: ant.design'}
+                  placeholder={'请输入密码'}
                   rules={[
                     {
                       required: true,
@@ -274,7 +273,7 @@ const Login: React.FC = () => {
             )}
 
             {status === 'error' && loginType === 'mobile' && <LoginMessage content="验证码错误" />}
-            {type === 'mobile' && (
+            {loginType === 'mobile' && (
               <>
                 <ProFormText
                   fieldProps={{
@@ -333,12 +332,13 @@ const Login: React.FC = () => {
                 marginBottom: 24,
               }}
             >
-              <ProFormCheckbox noStyle name="autoLogin">
+              {/* <ProFormCheckbox noStyle name="autoLogin">
                 自动登录
-              </ProFormCheckbox>
+              </ProFormCheckbox> */}
               <a
                 style={{
                   float: 'right',
+                  marginBottom: 24,
                 }}
               >
                 忘记密码 ?

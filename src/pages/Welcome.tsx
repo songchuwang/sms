@@ -17,6 +17,8 @@ const InfoCard: React.FC<{
   href: string;
   cardType: number;
 }> = ({ title, cardType }) => {
+  const initialState = useModel('@@initialState');
+  const { currentUser } = initialState || {};
   const { useToken } = theme;
 
   const { token } = useToken();
@@ -78,7 +80,9 @@ const InfoCard: React.FC<{
                 flexDirection: 'column',
               }}
             >
-              <span>宋楚望|企业编码:123456</span>
+              <span>
+                {currentUser?.name}|企业编码:{currentUser?.businessId}
+              </span>
               <span>深圳市杰讯信息科技技术</span>
               <span>广东深圳市龙岗区</span>
             </div>
