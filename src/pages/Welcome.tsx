@@ -1,8 +1,8 @@
 import { Line } from '@ant-design/charts';
 import { EditOutlined, FundOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
-import { useModel } from '@umijs/max';
-import { Card, theme } from 'antd';
+import { Link, useModel } from '@umijs/max';
+import { Button, Card, theme } from 'antd';
 import React from 'react';
 
 /**
@@ -90,33 +90,95 @@ const InfoCard: React.FC<{
           style={{
             display: 'flex',
             flexDirection: 'row',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-start',
             flexWrap: 'wrap',
           }}
         >
-          <div style={{ backgroundColor: '#eeeeee', padding: '5px 10px', marginBottom: '10px' }}>
-            <EditOutlined />
-            <span>待审核短信</span>
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'flex-start',
+              flex: 1,
+            }}
+          >
+            <div style={{ padding: '5px 10px', marginBottom: '10px' }}>
+              <Link to="/smsManage/smsList">
+                <Button
+                  style={{ width: '136px', height: '40px' }}
+                  size={'large'}
+                  icon={<EditOutlined />}
+                >
+                  待审核短信
+                </Button>
+              </Link>
+            </div>
+            <div style={{ padding: '5px 10px', marginBottom: '10px' }}>
+              <Link to="/smsManage/sendSms">
+                <Button
+                  style={{ width: '136px', height: '40px' }}
+                  size={'large'}
+                  icon={<EditOutlined />}
+                >
+                  发送短信
+                </Button>
+              </Link>
+            </div>
+            <div style={{ padding: '5px 10px', marginBottom: '10px' }}>
+              <Link to="/account/employeeAccount">
+                <Button
+                  style={{ width: '136px', height: '40px' }}
+                  size={'large'}
+                  icon={<EditOutlined />}
+                >
+                  员工账户
+                </Button>
+              </Link>
+            </div>
           </div>
-          <div style={{ backgroundColor: '#eeeeee', padding: '5px 10px', marginBottom: '10px' }}>
-            <EditOutlined />
-            <span>发送短信</span>
-          </div>
-          <div style={{ backgroundColor: '#eeeeee', padding: '5px 10px', marginBottom: '10px' }}>
-            <EditOutlined />
-            <span>员工账户</span>
-          </div>
-          <div style={{ backgroundColor: '#eeeeee', padding: '5px 10px', marginBottom: '10px' }}>
-            <EditOutlined />
-            <span>充值入口</span>
-          </div>
-          <div style={{ backgroundColor: '#eeeeee', padding: '5px 10px', marginBottom: '10px' }}>
-            <EditOutlined />
-            <span>通讯录</span>
-          </div>
-          <div style={{ backgroundColor: '#eeeeee', padding: '5px 10px', marginBottom: '10px' }}>
-            <EditOutlined />
-            <span>消费明细</span>
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'flex-start',
+              flex: 1,
+            }}
+          >
+            <div style={{ padding: '5px 10px', marginBottom: '10px' }}>
+              <Link to="/consumption/accountRecharge">
+                <Button
+                  style={{ width: '136px', height: '40px' }}
+                  size={'large'}
+                  icon={<EditOutlined />}
+                >
+                  账户充值
+                </Button>
+              </Link>
+            </div>
+            <div style={{ padding: '5px 10px', marginBottom: '10px' }}>
+              <Link to="/AddressBookManage">
+                <Button
+                  style={{ width: '136px', height: '40px' }}
+                  size={'large'}
+                  icon={<EditOutlined />}
+                >
+                  通讯录
+                </Button>
+              </Link>
+            </div>
+            <div style={{ padding: '5px 10px', marginBottom: '10px' }}>
+              <Link to="/consumption/consumptionDetails">
+                <Button
+                  style={{ width: '136px', height: '40px' }}
+                  size={'large'}
+                  icon={<EditOutlined />}
+                >
+                  消费明细
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       )}

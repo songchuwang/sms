@@ -5,6 +5,10 @@ const Basic: FC = () => {
   return (
     <PageContainer>
       <Card bordered={false}>
+        <h3>
+          企业账户：账户余额<span style={{ color: '#1890ff' }}>2000.00</span>元，短信剩余量：
+          <span style={{ color: '#1890ff' }}>8888</span>条。
+        </h3>
         <Descriptions
           title="第一步：请选择微信或支付宝扫码付款"
           style={{

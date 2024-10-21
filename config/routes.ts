@@ -67,10 +67,10 @@ export default [
     routes: [
       {
         path: '/account/employeeAccount',
-        name: '充值统计',
+        name: '员工账户',
         component: './AccountManage/EmployeeAccount',
       },
-      { path: '/account/roles', name: '收发量统计', component: './AccountManage/RolesManage' },
+      { path: '/account/roles', name: '账户充值', component: './AccountManage/RolesManage' },
     ],
   },
   {

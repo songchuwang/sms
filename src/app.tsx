@@ -1,10 +1,11 @@
 import { AvatarDropdown, AvatarName, Footer, Question } from '@/components';
 import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
-import { LinkOutlined } from '@ant-design/icons';
+import { LinkOutlined, MutedOutlined } from '@ant-design/icons';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { SettingDrawer } from '@ant-design/pro-components';
 import type { RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link } from '@umijs/max';
+import { Button } from 'antd';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 const isDev = process.env.NODE_ENV === 'development';
@@ -49,7 +50,7 @@ export async function getInitialState(): Promise<{
 // ProLayout 支持的api https://procomponents.ant.design/components/layout
 export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) => {
   return {
-    actionsRender: () => [<Question key="doc" />],
+    actionsRender: () => [<Question key="doc" />, <Question key="doc" />],
     avatarProps: {
       src: initialState?.currentUser?.avatar,
       title: <AvatarName />,
@@ -68,6 +69,22 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
         history.push(loginPath);
       }
     },
+    headerContentRender: () => (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <MutedOutlined style={{ color: '#FF7F00' }} />
+        <span style={{ marginLeft: 5, color: '#FF7F00' }}>
+          根据平台要求，企业必须完成真实身份信息认证后，才能正常使用短信发送服务。
+        </span>
+        <Button type="link">前往认证 {'>'}</Button>
+      </div>
+    ),
     bgLayoutImgList: [
       {
         src: 'https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/D2LWSqNny4sAAAAAAAAAAAAAFl94AQBr',

@@ -12,6 +12,7 @@ import '@umijs/max';
 import { Button, Card, Col, Form, Input, Radio, Row, Select } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useState } from 'react';
+import MessagePreview from './components/MessagePreview';
 const { Option } = Select;
 const { TextArea } = Input;
 
@@ -24,6 +25,9 @@ const useStyles = createStyles(({}) => {
       '.ant-menu': {
         // background:'red',
         'border-inline-end': 'none !important',
+      },
+      '.ant-card-body': {
+        padding: '14px',
       },
     },
     groupItem: {
@@ -274,16 +278,12 @@ const Center: React.FC = () => {
             loading={false}
           >
             <div className={styles.groupBox}>
-              <Button
-                type="primary"
-                key="primary"
-                onClick={() => {
-                  handleCreateModalOpen(true);
-                  handleUpdateModalTitle('新建通讯录分组');
-                }}
-              >
-                <PlusOutlined /> 新建分组
-              </Button>
+              <MessagePreview
+                sender="宋楚望"
+                title="中国联通"
+                content="验证码7414，用于手机登录，5分钟内有效。验证码提供给他人可能导致账号被盗，请勿泄露，谨防被骗。"
+                timestamp="2023-04-01T12:00:00Z"
+              />
             </div>
 
             {/* {!loading && currentUser && (
@@ -309,6 +309,7 @@ const Center: React.FC = () => {
           const success = await handleAdd(value as API.RuleListItem);
           if (success) {
             handleCreateModalOpen(false);
+            handleUpdateModalTitle(false);
             // if (actionRef.current) {
             //   actionRef.current.reload();
             // }

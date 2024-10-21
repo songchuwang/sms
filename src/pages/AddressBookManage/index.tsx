@@ -24,6 +24,7 @@ const useStyles = createStyles(({}) => {
     menuBox: {},
     groupBox: {
       display: 'flex',
+      flex: 1,
       flexDirection: 'column',
       '.ant-menu': {
         // background:'red',
@@ -584,11 +585,12 @@ const Center: React.FC = () => {
   return (
     <GridContent>
       <Row gutter={2}>
-        <Col lg={4} md={24}>
+        <Col lg={4} md={24} flex={1}>
           <Card
             bordered={false}
             style={{
               marginBottom: 24,
+              height: '100%',
             }}
             loading={false}
           >
@@ -649,6 +651,7 @@ const Center: React.FC = () => {
         open={createModalOpen}
         onOpenChange={handleCreateModalOpen}
         onFinish={async (value) => {
+          console.log('groupName', value);
           const success = await handleAdd(value as API.RuleListItem);
           if (success) {
             handleCreateModalOpen(false);
@@ -662,11 +665,11 @@ const Center: React.FC = () => {
           rules={[
             {
               required: true,
-              message: '规则名称为必填项',
+              message: '请填写分组名称',
             },
           ]}
           width="md"
-          name="name"
+          name="groupName"
           label="分组名称"
         />
       </ModalForm>
