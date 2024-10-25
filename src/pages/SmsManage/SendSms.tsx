@@ -51,6 +51,8 @@ const Center: React.FC = () => {
 
   const [modalTitle, handleUpdateModalTitle] = useState<string>('新建通讯录分组');
 
+  const [smsContent, setSmsContent] = useState<string>('');
+
   const [value, setValue] = useState(1);
   const onRadioChange = (e) => {
     console.log('radio checked', e.target.value);
@@ -80,6 +82,7 @@ const Center: React.FC = () => {
 
   const onTextChange = (e) => {
     console.log('Change:', e.target.value);
+    setSmsContent(e.target.value);
   };
 
   return (
@@ -227,7 +230,7 @@ const Center: React.FC = () => {
                     showCount
                     maxLength={100}
                     onChange={onTextChange}
-                    placeholder="disable resize"
+                    placeholder="请输入短信内容"
                     style={{
                       height: 120,
                       resize: 'none',
@@ -281,7 +284,10 @@ const Center: React.FC = () => {
               <MessagePreview
                 sender="宋楚望"
                 title="中国联通"
-                content="验证码7414，用于手机登录，5分钟内有效。验证码提供给他人可能导致账号被盗，请勿泄露，谨防被骗。"
+                content={
+                  smsContent ||
+                  '验证码7414，用于手机登录，5分钟内有效。验证码提供给他人可能导致账号被盗，请勿泄露，谨防被骗。'
+                }
                 timestamp="2023-04-01T12:00:00Z"
               />
             </div>

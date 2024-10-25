@@ -1,4 +1,4 @@
-import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
+import { addRule, getSmsList, removeRule, updateRule } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsActionType } from '@ant-design/pro-components';
 import {
@@ -114,7 +114,6 @@ const TableList: React.FC = () => {
     {
       title: '任务编号',
       dataIndex: 'name',
-      tip: 'The rule name is the unique key',
       search: false,
     },
     {
@@ -275,13 +274,9 @@ const TableList: React.FC = () => {
             <PlusOutlined /> 新建
           </Button>,
         ]}
-        request={rule}
+        request={getSmsList}
         columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
-        }}
+        rowSelection={false}
       />
       {selectedRowsState?.length > 0 && (
         <FooterToolbar

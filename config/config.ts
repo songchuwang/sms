@@ -53,7 +53,8 @@ export default defineConfig({
   // proxy: proxy[REACT_APP_ENV as keyof typeof proxy],
   proxy: {
     '/api/v1/': {
-      target: 'http://127.0.0.1:9088/',
+      // target: 'http://127.0.0.1:9088/',
+      target: 'https://smsapi.bdcjx.com',
       changeOrigin: true,
       pathRewrite: { '^': '' },
     },

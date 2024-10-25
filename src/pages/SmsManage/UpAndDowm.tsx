@@ -107,9 +107,17 @@ const TableList: React.FC = () => {
 
   const columns: ProColumns<API.RuleListItem>[] = [
     {
+      title: '序号',
+      dataIndex: 'index',
+      valueType: 'textarea',
+      search: false,
+      render: (dom, entity, index) => {
+        return index + 1;
+      },
+    },
+    {
       title: '短信批次',
       dataIndex: 'name',
-      tip: 'The rule name is the unique key',
     },
     {
       title: '发送号码',
@@ -228,11 +236,7 @@ const TableList: React.FC = () => {
         ]}
         request={rule}
         columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
-        }}
+        rowSelection={false}
       />
       {selectedRowsState?.length > 0 && (
         <FooterToolbar

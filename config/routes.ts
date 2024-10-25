@@ -9,7 +9,7 @@ export default [
     path: '/smsManage',
     name: '短信管理',
     icon: 'mail',
-    access: 'canAdmin',
+    // access: 'canAdmin',
     routes: [
       { path: '/smsManage', redirect: '/smsManage/sub-page' },
       { path: '/smsManage/smsList', name: '短信列表', component: './SmsManage/SmsList' },
@@ -27,7 +27,7 @@ export default [
     path: '/consumption',
     name: '消费充值',
     icon: 'crown',
-    access: 'canAdmin',
+    // access: 'canAdmin',
     routes: [
       {
         path: '/consumption/consumptionDetails',
@@ -45,7 +45,7 @@ export default [
     path: '/statistics',
     name: '报表统计',
     icon: 'table',
-    access: 'canAdmin',
+    // access: 'canAdmin',
     routes: [
       {
         path: '/statistics/rechargeStatistics',
@@ -63,7 +63,7 @@ export default [
     path: '/account',
     name: '账户管理',
     icon: 'appstore',
-    access: 'canAdmin',
+    // access: 'canAdmin',
     routes: [
       {
         path: '/account/employeeAccount',
@@ -77,7 +77,7 @@ export default [
     path: '/setting',
     name: '系统设置',
     icon: 'setting',
-    access: 'canAdmin',
+    // access: 'canAdmin',
     routes: [
       { path: '/setting/smsTemplate', name: '短信模板', component: './Setting/SmsTemplate' },
       {

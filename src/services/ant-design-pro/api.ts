@@ -104,3 +104,76 @@ export async function removeRule(options?: { [key: string]: any }) {
     },
   });
 }
+
+export async function getBusinessCount() {
+  return request<API.RuleList>('/api/v1/admin/home/platform/statistics/business/count', {
+    method: 'GET',
+    params: {},
+  });
+}
+
+export async function getBusinessConsumption(
+  params: {
+    businessId?: string;
+  },
+  options?: { [key: string]: any },
+) {
+  console.log('列表翻页接口', params);
+  return request<API.RuleList>('/api/v1/admin/home/platform/statistics/business/consumption', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+// 平台营收
+export async function getRevenueData(
+  params: {
+    businessId?: string;
+  },
+  options?: { [key: string]: any },
+) {
+  console.log('列表翻页接口', params);
+  return request<API.RuleList>('/api/v1/admin/home/platform/statistics/revenue', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+// 平台短信条数
+export async function getSmsData(
+  params: {
+    businessId?: string;
+  },
+  options?: { [key: string]: any },
+) {
+  console.log('列表翻页接口', params);
+  return request<API.RuleList>('/api/v1/admin/home/platform/statistics/sms/count', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+export async function getSmsList(options?: { [key: string]: any }) {
+  console.log('getAccountList', options);
+
+  const msg = await request<API.RuleList>('/api/v1/admin/business/sms/page', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+  console.log('getAccountList result', msg);
+  return {
+    data: msg.list,
+    success: msg.success,
+    total: msg.total,
+  };
+}
