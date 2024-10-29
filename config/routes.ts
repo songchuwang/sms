@@ -70,7 +70,7 @@ export default [
         name: '员工账户',
         component: './AccountManage/EmployeeAccount',
       },
-      { path: '/account/roles', name: '账户充值', component: './AccountManage/RolesManage' },
+      { path: '/account/roles', name: '角色管理', component: './AccountManage/RolesManage' },
     ],
   },
   {

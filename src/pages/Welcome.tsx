@@ -1,9 +1,4 @@
-import {
-  getBusinessConsumption,
-  getBusinessCount,
-  getRevenueData,
-  getSmsData,
-} from '@/services/ant-design-pro/api';
+import { getBusinessConsumption } from '@/services/ant-design-pro/api';
 
 import {
   AuditOutlined,
@@ -264,24 +259,24 @@ const Welcome: React.FC = () => {
   // };
 
   useEffect(() => {
-    getBusinessCount().then((res) => {
-      setBusinessCount(res.list);
-    });
+    // getBusinessCount().then((res) => {
+    //   setBusinessCount(res.list);
+    // });
     getBusinessConsumption({
       type: activeTab,
     }).then((res) => {
       setBusinessConsumption(res.list);
     });
-    getRevenueData({
-      type: activeRevenueTab,
-    }).then((res) => {
-      setRevenue(res.list);
-    });
-    getSmsData({
-      type: activeSMSTab,
-    }).then((res) => {
-      setSmsCount(res.list);
-    });
+    // getRevenueData({
+    //   type: activeRevenueTab,
+    // }).then((res) => {
+    //   setRevenue(res.list);
+    // });
+    // getSmsData({
+    //   type: activeSMSTab,
+    // }).then((res) => {
+    //   setSmsCount(res.list);
+    // });
   }, []);
   // 平台企业消费折线图
   const LineChart1 = () => {

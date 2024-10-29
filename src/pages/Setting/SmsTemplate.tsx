@@ -1,6 +1,18 @@
-import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
+import {
+  getTempList,
+  handleTempAdd,
+  handleTempRemove,
+  handleTempUpdate,
+  removeRule,
+  updateRule,
+} from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
+import type {
+  ActionType,
+  ProColumns,
+  ProDescriptionsItemProps,
+  ProFormInstance,
+} from '@ant-design/pro-components';
 import {
   FooterToolbar,
   ModalForm,
@@ -11,32 +23,10 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Drawer, Input, message } from 'antd';
+import { Button, Col, Drawer, Input, message, Popconfirm, Row, Space } from 'antd';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
-
-/**
- * @en-US Add node
- * @zh-CN 添加节点
- * @param fields
- */
-const handleAdd = async (fields: API.RuleListItem) => {
-  const hide = message.loading('正在添加');
-  try {
-    await addRule({
-      ...fields,
-    });
-    hide();
-    message.success('Added successfully');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Adding failed, please try again!');
-    return false;
-  }
-};
-
 /**
  * @en-US Update node
  * @zh-CN 更新节点
@@ -83,7 +73,12 @@ const handleRemove = async (selectedRows: API.RuleListItem[]) => {
     return false;
   }
 };
+const formItemLayout = {
+  labelCol: { span: 6 },
+  wrapperCol: { span: 18 },
+};
 const TableList: React.FC = () => {
+  const modalFormRef = useRef<ProFormInstance>();
   /**
    * @en-US Pop-up window of new window
    * @zh-CN 新建窗口的弹窗
@@ -98,22 +93,20 @@ const TableList: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
-
+  const [modalTitle, setModalTitle] = useState('新增模板');
   /**
    * @en-US International configuration
    * @zh-CN 国际化配置
    * */
-
   const columns: ProColumns<API.RuleListItem>[] = [
     {
       title: '模板编号',
-      dataIndex: 'name',
-      tip: 'The rule name is the unique key',
+      dataIndex: 'templateId',
       search: false,
     },
     {
       title: '模板名称',
-      dataIndex: 'content',
+      dataIndex: 'name',
       valueType: 'textarea',
       search: false,
     },
@@ -125,7 +118,7 @@ const TableList: React.FC = () => {
     {
       title: '创建时间',
       sorter: true,
-      dataIndex: 'updatedAt',
+      dataIndex: 'createTime',
       valueType: 'dateTime',
       renderFormItem: (item, { defaultRender, ...rest }, form) => {
         const status = form.getFieldValue('status');
@@ -140,46 +133,15 @@ const TableList: React.FC = () => {
     },
     {
       title: '备注说明',
-      dataIndex: 'desc',
+      dataIndex: 'remark',
       valueType: 'textarea',
       search: false,
     },
     {
       title: '创建人',
-      dataIndex: 'desc',
+      dataIndex: 'updateBy',
       valueType: 'textarea',
     },
-    // {
-    //     title: '服务调用次数',
-    //     dataIndex: 'callNo',
-    //     sorter: true,
-    //     hideInForm: true,
-    //     renderText: (val: string) => `${val}${'万'}`,
-    //     search: false,
-    // },
-    // {
-    //     title: '任务状态',
-    //     dataIndex: 'status',
-    //     hideInForm: true,
-    //     valueEnum: {
-    //         0: {
-    //             text: '关闭',
-    //             status: 'Default',
-    //         },
-    //         1: {
-    //             text: '运行中',
-    //             status: 'Processing',
-    //         },
-    //         2: {
-    //             text: '已上线',
-    //             status: 'Success',
-    //         },
-    //         3: {
-    //             text: '异常',
-    //             status: 'Error',
-    //         },
-    //     },
-    // },
     {
       title: '操作',
       dataIndex: 'option',
@@ -188,15 +150,33 @@ const TableList: React.FC = () => {
         <a
           key="config"
           onClick={() => {
-            handleUpdateModalOpen(true);
-            setCurrentRow(record);
+            handleModalOpen(true);
+            setModalTitle('编辑模板');
+            setTimeout(() => {
+              if (modalFormRef.current) {
+                modalFormRef.current.setFieldsValue(record);
+                setCurrentRow(record);
+              }
+            });
           }}
         >
           编辑
         </a>,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
-          删除
-        </a>,
+        <Popconfirm
+          key="tempRemove"
+          style={{ display: 'none' }}
+          title="确定要删除该签名模板吗？"
+          onConfirm={async () => {
+            await handleTempRemove({
+              templateId: record.templateId,
+            });
+            if (actionRef.current) {
+              actionRef.current.reload();
+            }
+          }}
+        >
+          <a>删除</a>
+        </Popconfirm>,
       ],
     },
   ];
@@ -209,18 +189,23 @@ const TableList: React.FC = () => {
         search={{
           labelWidth: 120,
         }}
+        options={false}
         toolBarRender={() => [
           <Button
             type="primary"
             key="primary"
             onClick={() => {
               handleModalOpen(true);
+              if (modalFormRef.current) {
+                setModalTitle('新增模板');
+                modalFormRef.current.resetFields();
+              }
             }}
           >
-            <PlusOutlined /> 新建
+            <PlusOutlined /> 新增模板
           </Button>,
         ]}
-        request={rule}
+        request={getTempList}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -260,17 +245,46 @@ const TableList: React.FC = () => {
         </FooterToolbar>
       )}
       <ModalForm
-        title={'新建规则'}
-        width="400px"
+        {...formItemLayout}
+        title={modalTitle}
+        width="600px"
         open={createModalOpen}
+        formRef={modalFormRef}
         onOpenChange={handleModalOpen}
+        layout={'horizontal'}
+        submitter={{
+          render: (props, doms) => {
+            return (
+              <Row>
+                <Col span={14} offset={2}>
+                  <Space>{doms}</Space>
+                </Col>
+              </Row>
+            );
+          },
+        }}
         onFinish={async (value) => {
-          const success = await handleAdd(value as API.RuleListItem);
-          if (success) {
+          console.log('handleAccountEdit', value);
+          let payload = {
+            ...value,
+          };
+          delete payload.method;
+          let result = {};
+          if (modalTitle === '编辑模板') {
+            result = await handleTempUpdate({
+              ...payload,
+            });
+          } else {
+            result = await handleTempAdd(payload as API.RuleListItem);
+          }
+          if (result.code === '200') {
+            message.success(modalTitle === '编辑模板' ? '修改成功' : '创建成功');
             handleModalOpen(false);
             if (actionRef.current) {
               actionRef.current.reload();
             }
+          } else {
+            message.error(result.msg);
           }
         }}
       >
@@ -281,10 +295,22 @@ const TableList: React.FC = () => {
               message: '规则名称为必填项',
             },
           ]}
+          label="模板名称"
           width="md"
           name="name"
         />
-        <ProFormTextArea width="md" name="desc" />
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '规则名称为必填项',
+            },
+          ]}
+          label="模板内容"
+          width="md"
+          name="content"
+        />
+        <ProFormTextArea label="备注说明" width="md" name="remark" />
       </ModalForm>
       <UpdateForm
         onSubmit={async (value) => {

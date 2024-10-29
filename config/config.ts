@@ -58,6 +58,12 @@ export default defineConfig({
       changeOrigin: true,
       pathRewrite: { '^': '' },
     },
+    '/common/dgy/v1/': {
+      // target: 'http://127.0.0.1:9088/',
+      target: 'https://smsapi.bdcjx.com',
+      changeOrigin: true,
+      pathRewrite: { '^': '' },
+    },
   },
   /**
    * @name 快速热更新配置
