@@ -1,6 +1,6 @@
-import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
+import { addRule, getRechargeList, removeRule, updateRule } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
+import type { ActionType, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
   FooterToolbar,
   ModalForm,
@@ -11,7 +11,8 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Drawer, message } from 'antd';
+import type { TabsProps } from 'antd';
+import { Button, Drawer, Input, message, Tabs } from 'antd';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
@@ -96,29 +97,172 @@ const TableList: React.FC = () => {
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
+  const [statisticsType, setType] = useState(1);
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
-
-  /**
-   * @en-US International configuration
-   * @zh-CN 国际化配置
-   * */
-
-  const columns: ProColumns<API.RuleListItem>[] = [
+  const [columns, setColumns] = useState([
     {
-      title: '日期（天）',
-      dataIndex: 'name',
-      tip: 'The rule name is the unique key',
-    },
-    {
-      title: '金额（元）',
-      dataIndex: 'content',
+      title: '序号',
+      dataIndex: 'index',
       valueType: 'textarea',
       search: false,
+      render: (dom, entity, index) => {
+        return index + 1;
+      },
     },
-  ];
-  return (
-    <PageContainer>
+    {
+      title: '日期（天）',
+      sorter: true,
+      dataIndex: 'date',
+      valueType: 'dateTime',
+      renderFormItem: (item, { defaultRender, ...rest }, form) => {
+        const status = form.getFieldValue('status');
+        if (`${status}` === '0') {
+          return false;
+        }
+        if (`${status}` === '3') {
+          return <Input {...rest} placeholder={'请输入异常原因！'} />;
+        }
+        return defaultRender(item);
+      },
+      search: false,
+    },
+    {
+      title: '发送短信量（条）',
+      dataIndex: 'sendCount',
+      search: false,
+    },
+    {
+      title: '收到短信量（条）',
+      dataIndex: 'receiveCount',
+      search: false,
+    },
+  ]);
+
+  const ProTableFn = (key) => {
+    if (key === '1') {
+      console.log('columnscolumnscolumns1', columns);
+      setColumns([
+        {
+          title: '序号',
+          dataIndex: 'index',
+          valueType: 'textarea',
+          search: false,
+          render: (dom, entity, index) => {
+            return index + 1;
+          },
+        },
+        {
+          title: '日期（天）',
+          sorter: true,
+          dataIndex: 'date',
+          valueType: 'dateTime',
+          renderFormItem: (item, { defaultRender, ...rest }, form) => {
+            const status = form.getFieldValue('status');
+            if (`${status}` === '0') {
+              return false;
+            }
+            if (`${status}` === '3') {
+              return <Input {...rest} placeholder={'请输入异常原因！'} />;
+            }
+            return defaultRender(item);
+          },
+          search: false,
+        },
+        {
+          title: '发送短信量（条）',
+          dataIndex: 'sendCount',
+          search: false,
+        },
+        {
+          title: '收到短信量（条）',
+          dataIndex: 'receiveCount',
+          search: false,
+        },
+      ]);
+    } else if (key === '2') {
+      console.log('columnscolumnscolumns2', columns);
+      setColumns([
+        {
+          title: '序号',
+          dataIndex: 'index',
+          valueType: 'textarea',
+          search: false,
+          render: (dom, entity, index) => {
+            return index + 1;
+          },
+        },
+        {
+          title: '日期（月份）',
+          sorter: true,
+          dataIndex: 'date',
+          valueType: 'dateTime',
+          renderFormItem: (item, { defaultRender, ...rest }, form) => {
+            const status = form.getFieldValue('status');
+            if (`${status}` === '0') {
+              return false;
+            }
+            if (`${status}` === '3') {
+              return <Input {...rest} placeholder={'请输入异常原因！'} />;
+            }
+            return defaultRender(item);
+          },
+          search: false,
+        },
+        {
+          title: '发送短信量（条）',
+          dataIndex: 'sendCount',
+          search: false,
+        },
+        {
+          title: '收到短信量（条）',
+          dataIndex: 'receiveCount',
+          search: false,
+        },
+      ]);
+    } else if (key === '3') {
+      console.log('columnscolumnscolumns3', columns);
+      setColumns([
+        {
+          title: '序号',
+          dataIndex: 'index',
+          valueType: 'textarea',
+          search: false,
+          render: (dom, entity, index) => {
+            return index + 1;
+          },
+        },
+        {
+          title: '日期（年份）',
+          sorter: true,
+          dataIndex: 'date',
+          valueType: 'dateTime',
+          renderFormItem: (item, { defaultRender, ...rest }, form) => {
+            const status = form.getFieldValue('status');
+            if (`${status}` === '0') {
+              return false;
+            }
+            if (`${status}` === '3') {
+              return <Input {...rest} placeholder={'请输入异常原因！'} />;
+            }
+            return defaultRender(item);
+          },
+        },
+        {
+          title: '发送短信量（条）',
+          dataIndex: 'sendCount',
+          search: false,
+        },
+        {
+          title: '收到短信量（条）',
+          dataIndex: 'receiveCount',
+          search: false,
+        },
+      ]);
+    }
+    console.log('columnscolumnscolumns', columns);
+
+    return (
       <ProTable<API.RuleListItem, API.PageParams>
         headerTitle={'查询表格'}
         actionRef={actionRef}
@@ -134,17 +278,58 @@ const TableList: React.FC = () => {
               handleModalOpen(true);
             }}
           >
-            <PlusOutlined /> 新建
+            <PlusOutlined /> 导出
           </Button>,
         ]}
-        request={rule}
-        columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
+        request={(params) => {
+          console.log('paramsparams', params);
+          let payload = {
+            ...params,
+            pageSize: 10,
+            type: statisticsType,
+          };
+          return getRechargeList(payload);
         }}
+        options={false}
+        columns={columns}
+        rowSelection={false}
       />
+    );
+  };
+
+  const onTabChange = (key: string) => {
+    console.log(key);
+    ProTableFn(key);
+    setType(key);
+    setTimeout(() => {
+      if (actionRef.current) {
+        actionRef.current.reload();
+      }
+    });
+  };
+
+  const items: TabsProps['items'] = [
+    {
+      key: '1',
+      label: '日报',
+      children: '',
+    },
+    {
+      key: '2',
+      label: '月报',
+      children: '',
+    },
+    {
+      key: '3',
+      label: '年报',
+      children: '',
+    },
+  ];
+
+  return (
+    <PageContainer>
+      <Tabs defaultActiveKey="1" items={items} onChange={onTabChange} />
+      <ProTableFn />
       {selectedRowsState?.length > 0 && (
         <FooterToolbar
           extra={

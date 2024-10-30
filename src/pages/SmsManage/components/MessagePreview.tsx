@@ -3,18 +3,20 @@ import './MessagePreview.css'; // 引入自定义样式文件
 
 const { Text } = Typography;
 
-const MessagePreview = ({ sender, content, timestamp, title }) => {
+const MessagePreview = ({ content, title }) => {
   return (
     <div className="phone-frame">
-      <Card className="message-preview-card">
-        <div className="message-header">
+      {title || content ? (
+        <Card className="message-preview-card">
+          {/* <div className="message-header">
           <Text className="message-sender">{sender}</Text>
           <Text className="message-timestamp">{new Date(timestamp).toLocaleString()}</Text>
-        </div>
-        <Text className="message-content">
-          【{title}】{content}
-        </Text>
-      </Card>
+        </div> */}
+          <Text className="message-content">
+            {title.trim() ? `【${title}】` : ''} {content}
+          </Text>
+        </Card>
+      ) : null}
     </div>
   );
 };

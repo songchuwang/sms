@@ -1,4 +1,10 @@
-import { addRule, getSmsList, removeRule, updateRule } from '@/services/ant-design-pro/api';
+import {
+  addRule,
+  getSmsList,
+  handleSmsExamine,
+  removeRule,
+  updateRule,
+} from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsActionType } from '@ant-design/pro-components';
 import {
@@ -101,6 +107,8 @@ const TableList: React.FC = () => {
    * */
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
+  const [showRejectTextArea, setShowRejectTextArea] = useState<boolean>(false);
+
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
@@ -111,62 +119,75 @@ const TableList: React.FC = () => {
    * */
 
   const columns: ProColumns<API.RuleListItem>[] = [
+    // {
+    //   title: '任务编号',
+    //   dataIndex: 'name',
+    //   search: false,
+    // },
     {
-      title: '任务编号',
-      dataIndex: 'name',
-      search: false,
-    },
-    {
-      title: '短信内容',
-      dataIndex: 'content',
+      title: '序号',
+      dataIndex: 'index',
       valueType: 'textarea',
+      search: false,
+      render: (dom, entity, index) => {
+        return index + 1;
+      },
     },
     {
       title: '发送方式',
-      dataIndex: 'content',
-      valueType: 'textarea',
-      search: false,
+      dataIndex: 'sendType',
+      hideInForm: true,
+      valueEnum: {
+        0: {
+          text: '即时发送',
+          // status: 'Default',
+        },
+        1: {
+          text: '定时发送',
+          // status: 'Processing',
+        },
+      },
     },
     {
       title: '发送时间',
-      dataIndex: 'content',
-      valueType: 'textarea',
+      dataIndex: 'fixedTime',
       search: false,
+      valueType: 'dateTime',
     },
     {
       title: '发送号码数',
-      dataIndex: 'content',
+      dataIndex: 'mobileCount',
       valueType: 'textarea',
       search: false,
     },
     {
       title: '短信条数',
-      dataIndex: 'content',
+      dataIndex: 'smsCount',
       valueType: 'textarea',
       search: false,
     },
     {
       title: '预估计费金额（元）',
-      dataIndex: 'content',
+      dataIndex: 'cost',
       valueType: 'textarea',
       search: false,
     },
     {
       title: '发送成功短信（条）',
-      dataIndex: 'content',
+      dataIndex: 'sucCount',
       valueType: 'textarea',
       search: false,
     },
     {
       title: '发送失败短信（条）',
-      dataIndex: 'content',
+      dataIndex: 'failCount',
       valueType: 'textarea',
       search: false,
     },
     {
       title: '创建时间',
       sorter: true,
-      dataIndex: 'updatedAt',
+      dataIndex: 'createTime',
       valueType: 'dateTime',
       renderFormItem: (item, { defaultRender, ...rest }, form) => {
         const status = form.getFieldValue('status');
@@ -181,16 +202,8 @@ const TableList: React.FC = () => {
     },
     {
       title: '创建人',
-      dataIndex: 'desc',
+      dataIndex: 'createBy',
       valueType: 'textarea',
-    },
-    {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val: string) => `${val}${'万'}`,
-      search: false,
     },
     {
       title: '任务状态',
@@ -198,20 +211,28 @@ const TableList: React.FC = () => {
       hideInForm: true,
       valueEnum: {
         0: {
-          text: '关闭',
-          status: 'Default',
+          text: '待审核',
+          status: 'Processing',
         },
         1: {
-          text: '运行中',
+          text: '审核通过，待发送',
           status: 'Processing',
         },
         2: {
-          text: '已上线',
+          text: '发送成功',
           status: 'Success',
         },
         3: {
-          text: '异常',
+          text: '审核未通过',
           status: 'Error',
+        },
+        4: {
+          text: '发送失败',
+          status: 'Error',
+        },
+        5: {
+          text: '过期未审核',
+          status: 'Default',
         },
       },
     },
@@ -341,51 +362,59 @@ const TableList: React.FC = () => {
         width="400px"
         open={examineModalOpen}
         onOpenChange={handleExamineModalOpen}
+        onValuesChange={(changeValues) => {
+          console.log(changeValues);
+          if (changeValues?.status === '3') {
+            setShowRejectTextArea(true);
+          } else if (changeValues?.status === '2') {
+            setShowRejectTextArea(false);
+          }
+        }}
         onFinish={async (value) => {
-          const success = await handleAdd(value as API.RuleListItem);
-          if (success) {
-            handleExamineModalOpen(false);
+          console.log('handleSmsExamine', value);
+          let payload = {
+            ...value,
+            smsId: currentRow.smsId,
+          };
+          const result = await handleSmsExamine(payload as API.RuleListItem);
+          if (result.code === '200') {
+            message.success('审核成功');
             if (actionRef.current) {
               actionRef.current.reload();
             }
+          } else {
+            message.error(result.msg);
           }
+          handleExamineModalOpen(false);
         }}
       >
         <ProFormRadio.Group
-          name="type"
+          name="status"
           label={''}
           options={[
             {
-              value: '0',
+              value: '2',
               label: '通过，允许发送短信',
             },
             {
-              value: '1',
+              value: '3',
               label: '驳回，不允许发送短信',
             },
           ]}
         />
-        {/* <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '规则名称为必填项',
-            },
-          ]}
-          width="md"
-          name="name"
-        /> */}
-        <ProFormTextArea
-          width="md"
-          name="desc"
-          placeholder="请输入驳回原因"
-          rules={[
-            {
-              required: true,
-              message: '请输入驳回原因',
-            },
-          ]}
-        />
+        {showRejectTextArea ? (
+          <ProFormTextArea
+            width="md"
+            name="remark"
+            placeholder="请输入驳回原因"
+            rules={[
+              {
+                required: true,
+                message: '请输入驳回原因',
+              },
+            ]}
+          />
+        ) : null}
       </ModalForm>
       <ModalForm
         title={'备注'}

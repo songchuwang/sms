@@ -1,6 +1,19 @@
-import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
+import {
+  addRule,
+  getBookGrouptList,
+  getGrouptList,
+  handleBookGroupAdd,
+  handleGroupUpdate,
+  removeRule,
+  updateRule,
+} from '@/services/ant-design-pro/api';
 import { EditOutlined, PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsActionType } from '@ant-design/pro-components';
+import type {
+  ActionType,
+  ProColumns,
+  ProDescriptionsActionType,
+  ProFormInstance,
+} from '@ant-design/pro-components';
 import {
   FooterToolbar,
   GridContent,
@@ -15,7 +28,7 @@ import {
 import '@umijs/max';
 import { Button, Card, Col, Drawer, Menu, message, Row } from 'antd';
 import { createStyles } from 'antd-style';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 
@@ -114,7 +127,7 @@ const handleRemove = async (selectedRows: API.RuleListItem[]) => {
   }
 };
 
-const TableList: React.FC = () => {
+const TableList: React.FC = (props) => {
   const actionDesRef = useRef<ProDescriptionsActionType>();
   /**
    * @en-US Pop-up window of new window
@@ -134,6 +147,19 @@ const TableList: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
+  const [groupData, setGroupData] = useState({});
+
+  useEffect(() => {
+    console.log('groupProps', props, groupData);
+
+    let payload = {
+      groupId: props.groupProps.groupId,
+      pageNum: 1,
+      pageSize: 10,
+    };
+    setGroupData(props);
+    getGrouptList(payload);
+  }, [props]);
 
   /**
    * @en-US International configuration
@@ -257,7 +283,7 @@ const TableList: React.FC = () => {
             <PlusOutlined /> 导出列表
           </Button>,
         ]}
-        request={rule}
+        request={getGrouptList}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -516,14 +542,21 @@ const Center: React.FC = () => {
 
   const [modalTitle, handleUpdateModalTitle] = useState<string>('新建通讯录分组');
 
-  const items = [
-    {
-      key: 'grp',
-      label: '通讯录',
-      type: 'group',
-      children: [
-        {
-          key: '1',
+  const [menuList, setMenuList] = useState([]);
+
+  const [currentGroupItem, setCurrentGroupItem] = useState(null);
+
+  const [groupProps, updatePage] = useState({});
+  // 新建分组ref
+  const createGroupRef = useRef<ProFormInstance>();
+
+  const getBookGrouptListFn = () => {
+    getBookGrouptList().then((res) => {
+      console.log('getBookGrouptList', res);
+      let data = res.data || [];
+      let menuChildren = data.map((item, index) => {
+        return {
+          key: index,
           label: (
             <div
               style={{
@@ -533,55 +566,47 @@ const Center: React.FC = () => {
                 justifyContent: 'space-between',
                 flex: 1,
               }}
+              onClick={() => {
+                updatePage(item);
+              }}
             >
-              <span>Ant Design</span>
+              <span>
+                {item.groupName}({item.count})
+              </span>
               <EditOutlined
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   handleCreateModalOpen(true);
                   handleUpdateModalTitle('编辑通讯录分组');
+                  setCurrentGroupItem(item);
+                  if (createGroupRef.current) {
+                    createGroupRef.current.setFieldsValue({
+                      name: item.groupName,
+                    });
+                  }
                 }}
                 style={{ color: '#1890ff' }}
               />
             </div>
           ),
-        },
+        };
+      });
+      setMenuList([
         {
-          key: '2',
-          label: (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flex: 1,
-              }}
-            >
-              <span>Ant Design</span>
-              <EditOutlined style={{ color: '#1890ff' }} />
-            </div>
-          ),
+          key: 'grp',
+          label: '通讯录',
+          type: 'group',
+          children: menuChildren,
         },
-        {
-          key: '3',
-          label: (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flex: 1,
-              }}
-            >
-              <span>Ant Design</span>
-              <EditOutlined style={{ color: '#1890ff' }} />
-            </div>
-          ),
-        },
-      ],
-    },
-  ];
+      ]);
+    });
+  };
+
+  useEffect(() => {
+    getBookGrouptListFn();
+  }, []);
+
   return (
     <GridContent>
       <Row gutter={2}>
@@ -613,7 +638,7 @@ const Center: React.FC = () => {
                 defaultSelectedKeys={['1']}
                 defaultOpenKeys={['sub1']}
                 mode="inline"
-                items={items}
+                items={menuList}
               />
             </div>
 
@@ -641,23 +666,41 @@ const Center: React.FC = () => {
             // }}
           >
             {/* <div>1111</div> */}
-            <TableList />
+            <TableList groupProps={groupProps} />
           </Card>
         </Col>
       </Row>
       <ModalForm
         title={modalTitle}
         width="400px"
+        formRef={createGroupRef}
         open={createModalOpen}
         onOpenChange={handleCreateModalOpen}
         onFinish={async (value) => {
           console.log('groupName', value);
-          const success = await handleAdd(value as API.RuleListItem);
-          if (success) {
+          let result = {};
+          let payload = {
+            name: value.name,
+          };
+          if (modalTitle === '编辑通讯录分组') {
+            result = await handleGroupUpdate({
+              ...payload,
+              groupId: currentGroupItem?.groupId,
+            });
+          } else {
+            result = await handleBookGroupAdd(payload);
+          }
+          if (result.code === '200') {
+            message.success(modalTitle === '编辑通讯录分组' ? '修改成功' : '新增成功');
             handleCreateModalOpen(false);
-            // if (actionRef.current) {
-            //   actionRef.current.reload();
-            // }
+            await getBookGrouptListFn();
+            setTimeout(() => {
+              if (createGroupRef.current) {
+                createGroupRef.current.resetFields();
+              }
+            });
+          } else {
+            message.error(result.msg);
           }
         }}
       >
@@ -669,7 +712,7 @@ const Center: React.FC = () => {
             },
           ]}
           width="md"
-          name="groupName"
+          name="name"
           label="分组名称"
         />
       </ModalForm>

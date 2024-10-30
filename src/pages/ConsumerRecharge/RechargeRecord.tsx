@@ -1,42 +1,31 @@
-import { addRule, getSmsItemList, removeRule, updateRule } from '@/services/ant-design-pro/api';
-import { EditOutlined, VerticalAlignBottomOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
+import {
+  getPlatformRoleList,
+  getRechargeRecordList,
+  handleEmployeeAdd,
+  handleEmployeeUpdate,
+  removeRule,
+  updateRule,
+} from '@/services/ant-design-pro/api';
+import { PlusOutlined } from '@ant-design/icons';
+import type {
+  ActionType,
+  ProDescriptionsItemProps,
+  ProFormInstance,
+} from '@ant-design/pro-components';
 import {
   FooterToolbar,
   ModalForm,
   PageContainer,
   ProDescriptions,
+  ProFormSelect,
+  ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Drawer, Input, message } from 'antd';
-
-import React, { useRef, useState } from 'react';
+import { Button, Col, Drawer, message, Row, Space } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
-
-const { TextArea } = Input;
-
-/**
- * @en-US Add node
- * @zh-CN 添加节点
- * @param fields
- */
-const handleAdd = async (fields: API.RuleListItem) => {
-  const hide = message.loading('正在添加');
-  try {
-    await addRule({
-      ...fields,
-    });
-    hide();
-    message.success('Added successfully');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Adding failed, please try again!');
-    return false;
-  }
-};
 
 /**
  * @en-US Update node
@@ -84,7 +73,12 @@ const handleRemove = async (selectedRows: API.RuleListItem[]) => {
     return false;
   }
 };
+const formItemLayout = {
+  labelCol: { span: 6 },
+  wrapperCol: { span: 18 },
+};
 const TableList: React.FC = () => {
+  const modalFormRef = useRef<ProFormInstance>();
   /**
    * @en-US Pop-up window of new window
    * @zh-CN 新建窗口的弹窗
@@ -99,13 +93,26 @@ const TableList: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
+  const [roles, setRoles] = useState({});
+  const [modalTitle, setModalTitle] = useState('新建账户');
+
+  useEffect(() => {
+    getPlatformRoleList().then((res) => {
+      let valueEnum = {};
+      res.data.map((item) => {
+        valueEnum[item.roleId] = item.roleName;
+        return item;
+      });
+      setRoles(valueEnum);
+    });
+  }, []);
 
   /**
    * @en-US International configuration
    * @zh-CN 国际化配置
    * */
 
-  const columns: ProColumns<API.RuleListItem>[] = [
+  const columns = [
     {
       title: '序号',
       dataIndex: 'index',
@@ -116,59 +123,16 @@ const TableList: React.FC = () => {
       },
     },
     {
-      title: '短信批次',
-      dataIndex: 'batchNo',
-    },
-    {
-      title: '发送号码',
-      dataIndex: 'mobile',
-      valueType: 'textarea',
-    },
-    {
-      title: '姓名',
-      dataIndex: 'name',
+      title: '充值金额',
+      dataIndex: 'account',
       valueType: 'textarea',
       search: false,
     },
     {
-      title: '短信内容',
-      dataIndex: 'content',
-    },
-    {
-      title: '发送状态',
-      dataIndex: 'stateDesc',
-    },
-    {
-      title: '发送时间',
-      dataIndex: 'sendTime',
+      title: '充值时间',
+      sorter: true,
+      dataIndex: 'createTime',
       valueType: 'dateTime',
-    },
-    {
-      title: '回复内容',
-      dataIndex: 'replyContent',
-    },
-    {
-      title: '回复时间',
-      dataIndex: 'replyTime',
-      valueType: 'dateTime',
-    },
-    {
-      title: '操作',
-      dataIndex: 'option',
-      valueType: 'option',
-      render: (_, record) => [
-        <a
-          key="config"
-          onClick={() => {
-            console.log('操作', _, record);
-
-            // handleUpdateModalOpen(true);
-            // setCurrentRow(record);
-          }}
-        >
-          回复
-        </a>,
-      ],
     },
   ];
   return (
@@ -180,27 +144,23 @@ const TableList: React.FC = () => {
         search={{
           labelWidth: 120,
         }}
+        options={false}
         toolBarRender={() => [
           <Button
             type="primary"
             key="primary"
             onClick={() => {
               handleModalOpen(true);
+              if (modalFormRef.current) {
+                setModalTitle('新建账户');
+                modalFormRef.current.resetFields();
+              }
             }}
           >
-            <EditOutlined /> 批量回复
-          </Button>,
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleModalOpen(true);
-            }}
-          >
-            <VerticalAlignBottomOutlined /> 导出
+            <PlusOutlined /> 导出
           </Button>,
         ]}
-        request={getSmsItemList}
+        request={getRechargeRecordList}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -240,27 +200,115 @@ const TableList: React.FC = () => {
         </FooterToolbar>
       )}
       <ModalForm
-        title={'批量回复'}
-        width="500px"
+        {...formItemLayout}
+        title={modalTitle}
+        width="400px"
         open={createModalOpen}
+        formRef={modalFormRef}
         onOpenChange={handleModalOpen}
+        layout={'horizontal'}
+        submitter={{
+          render: (props, doms) => {
+            return (
+              <Row>
+                <Col span={14} offset={2}>
+                  <Space>{doms}</Space>
+                </Col>
+              </Row>
+            );
+          },
+        }}
         onFinish={async (value) => {
-          const success = await handleAdd(value as API.RuleListItem);
-          if (success) {
+          console.log('handleAccountEdit', value);
+          let payload = {
+            ...value,
+            roleIdList: [value.roleIdList],
+          };
+          delete payload.method;
+          let result = {};
+          if (modalTitle === '编辑账户') {
+            result = await handleEmployeeUpdate({
+              ...payload,
+              roleId: currentRow?.roleId,
+            });
+          } else {
+            result = await handleEmployeeAdd(payload as API.RuleListItem);
+          }
+          if (result.code === '200') {
+            message.success(modalTitle === '编辑账户' ? '修改成功' : '创建成功');
             handleModalOpen(false);
             if (actionRef.current) {
               actionRef.current.reload();
             }
+          } else {
+            message.error(result.msg);
           }
         }}
       >
-        <TextArea
-          showCount
-          maxLength={500}
-          placeholder="请输入回复内容"
-          style={{ height: 100, resize: 'none', marginBottom: '20px' }}
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '规则名称为必填项',
+            },
+          ]}
+          label="账户名"
+          width="md"
+          name="account"
         />
-        {/* <ProFormTextArea placeholder={"请输入回复内容"} width="lg" name="desc" /> */}
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '规则名称为必填项',
+            },
+          ]}
+          label="姓名"
+          width="md"
+          name="name"
+        />
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '规则名称为必填项',
+            },
+          ]}
+          label="手机号码"
+          width="md"
+          name="phoneNumber"
+        />
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '规则名称为必填项',
+            },
+          ]}
+          label="职位"
+          width="md"
+          name="job"
+        />
+        <ProFormSelect
+          name="roleIdList"
+          width="md"
+          label="角色"
+          valueEnum={roles}
+          initialValue={currentRow?.roleNames}
+        />
+        {modalTitle === '新建账户' ? (
+          <ProFormText
+            rules={[
+              {
+                required: true,
+                message: '规则名称为必填项',
+              },
+            ]}
+            label="初始密码"
+            width="md"
+            name="password"
+          />
+        ) : null}
       </ModalForm>
       <UpdateForm
         onSubmit={async (value) => {

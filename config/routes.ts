@@ -39,6 +39,11 @@ export default [
         name: '账户充值',
         component: './ConsumerRecharge/AccountRecharge',
       },
+      {
+        path: '/consumption/rechargeRecord',
+        name: '充值记录',
+        component: './ConsumerRecharge/RechargeRecord',
+      },
     ],
   },
   {

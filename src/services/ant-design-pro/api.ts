@@ -94,6 +94,26 @@ export async function addRule(options?: { [key: string]: any }) {
   });
 }
 
+export async function handleBookGroupAdd(options?: { [key: string]: any }) {
+  return request<API.RuleListItem>('/api/v1/admin/business/address/book/group/add', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+}
+
+export async function handleGroupUpdate(options?: { [key: string]: any }) {
+  return request<API.RuleListItem>('/api/v1/admin/business/address/book/group/update', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+}
+
 /** 删除规则 DELETE /api/rule */
 export async function removeRule(options?: { [key: string]: any }) {
   return request<Record<string, any>>('/api/rule', {
@@ -116,6 +136,103 @@ export async function getEmployeeList(options?: { [key: string]: any }) {
     },
   });
   console.log('getAccountList result', msg);
+  return {
+    data: msg.list,
+    success: msg.success,
+    total: msg.total,
+  };
+}
+
+export async function getRechargeList(options?: { [key: string]: any }) {
+  console.log('getAccountList', options);
+
+  const msg = await request<API.RuleList>('/api/v1/admin/business/report/recharge/page', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+  console.log('getAccountList result', msg);
+  return {
+    data: msg.list,
+    success: msg.success,
+    total: msg.total,
+  };
+}
+
+export async function getRechargeRecordList(options?: { [key: string]: any }) {
+  console.log('getAccountList', options);
+
+  const msg = await request<API.RuleList>('/api/v1/admin/business/recharge/log/page', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+  return {
+    data: msg.list,
+    success: msg.success,
+    total: msg.total,
+  };
+}
+
+export async function getConsumptionList(options?: { [key: string]: any }) {
+  const msg = await request<API.RuleList>('/api/v1/admin/business/consumption/page', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+  return {
+    data: msg.list,
+    success: msg.success,
+    total: msg.total,
+  };
+}
+
+export async function getBookGrouptList(options?: { [key: string]: any }) {
+  const msg = await request<API.RuleList>('/api/v1/admin/business/address/book/group/list', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+  return {
+    data: msg.list,
+    success: msg.success,
+    total: msg.total,
+  };
+}
+
+export async function getGrouptList(options?: { [key: string]: any }) {
+  const msg = await request<API.RuleList>('/api/v1/admin/business/address/book/page', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+  return {
+    data: msg.list,
+    success: msg.success,
+    total: msg.total,
+  };
+}
+
+export async function getSmsItemList(options?: { [key: string]: any }) {
+  console.log('getPlatformRoleList', options);
+  const msg = await request<API.RuleList>('/api/v1/admin/business/sms/item/page', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+  console.log('getPlatformRoleList result', msg);
   return {
     data: msg.list,
     success: msg.success,
@@ -252,6 +369,12 @@ export async function getBusinessInfo() {
     method: 'GET',
   });
 }
+// 获取签名列表
+export async function getSignList() {
+  return request<API.RuleList>('/api/v1/admin/business/sms/sign/list', {
+    method: 'GET',
+  });
+}
 
 export async function getSmsList(options?: { [key: string]: any }) {
   console.log('getAccountList', options);
@@ -269,6 +392,26 @@ export async function getSmsList(options?: { [key: string]: any }) {
     success: msg.success,
     total: msg.total,
   };
+}
+
+export async function sendSms(options?: { [key: string]: any }) {
+  return request<API.RuleListItem>('/api/v1/admin/business/sms/add', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+}
+
+export async function handleSmsExamine(options?: { [key: string]: any }) {
+  return request<API.RuleListItem>('/api/v1/admin/business/sms/check', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
 }
 
 export async function getTempList(options?: { [key: string]: any }) {
