@@ -1,8 +1,7 @@
-import { addRule, getRechargeList, removeRule, updateRule } from '@/services/ant-design-pro/api';
+import { addRule, exportFile, getRechargeList, updateRule } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
-  FooterToolbar,
   ModalForm,
   PageContainer,
   ProDescriptions,
@@ -16,6 +15,7 @@ import { Button, Drawer, Input, message, Tabs } from 'antd';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
+const downLoadUrl = '/api/v1/admin/business/report/recharge/export';
 
 /**
  * @en-US Add node
@@ -62,44 +62,23 @@ const handleUpdate = async (fields: FormValueType) => {
   }
 };
 
-/**
- *  Delete node
- * @zh-CN 删除节点
- *
- * @param selectedRows
- */
-const handleRemove = async (selectedRows: API.RuleListItem[]) => {
-  const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
-  try {
-    await removeRule({
-      key: selectedRows.map((row) => row.key),
-    });
-    hide();
-    message.success('Deleted successfully and will refresh soon');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Delete failed, please try again');
-    return false;
-  }
-};
 const TableList: React.FC = () => {
-  /**
-   * @en-US Pop-up window of new window
-   * @zh-CN 新建窗口的弹窗
-   *  */
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
-  /**
-   * @en-US The pop-up window of the distribution update window
-   * @zh-CN 分布更新窗口的弹窗
-   * */
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const [statisticsType, setType] = useState(1);
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
+  // const [downloadFileParams, saveDownloadFileParams] = useState({});
+
+  const handleDownLoadFile = () => {
+    let payload = {
+      type: statisticsType,
+    };
+    // console.log('downloadFileParams',downloadFileParams);
+    exportFile(downLoadUrl, { ...payload });
+  };
+
   const [columns, setColumns] = useState([
     {
       title: '序号',
@@ -125,11 +104,11 @@ const TableList: React.FC = () => {
         }
         return defaultRender(item);
       },
-      search: false,
     },
     {
       title: '金额',
       dataIndex: 'rechargeMoney',
+      search: false,
     },
   ]);
 
@@ -162,11 +141,11 @@ const TableList: React.FC = () => {
             }
             return defaultRender(item);
           },
-          search: false,
         },
         {
           title: '金额',
           dataIndex: 'rechargeMoney',
+          search: false,
         },
       ]);
     } else if (key === '2') {
@@ -196,11 +175,11 @@ const TableList: React.FC = () => {
             }
             return defaultRender(item);
           },
-          search: false,
         },
         {
           title: '金额',
           dataIndex: 'rechargeMoney',
+          search: false,
         },
       ]);
     } else if (key === '3') {
@@ -253,7 +232,7 @@ const TableList: React.FC = () => {
             type="primary"
             key="primary"
             onClick={() => {
-              handleModalOpen(true);
+              handleDownLoadFile();
             }}
           >
             <PlusOutlined /> 导出
@@ -266,6 +245,10 @@ const TableList: React.FC = () => {
             pageSize: 10,
             type: statisticsType,
           };
+          // let downloadFileParams = JSON.parse(JSON.stringify(payload))
+          // delete downloadFileParams.current
+          // delete downloadFileParams.pageSize
+          // saveDownloadFileParams(downloadFileParams)
           return getRechargeList(payload);
         }}
         options={false}
@@ -308,37 +291,6 @@ const TableList: React.FC = () => {
     <PageContainer>
       <Tabs defaultActiveKey="1" items={items} onChange={onTabChange} />
       <ProTableFn />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              已选择{' '}
-              <a
-                style={{
-                  fontWeight: 600,
-                }}
-              >
-                {selectedRowsState.length}
-              </a>{' '}
-              项 &nbsp;&nbsp;
-              <span>
-                服务调用次数总计 {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)} 万
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            批量删除
-          </Button>
-          <Button type="primary">批量审批</Button>
-        </FooterToolbar>
-      )}
       <ModalForm
         title={'新建规则'}
         width="400px"

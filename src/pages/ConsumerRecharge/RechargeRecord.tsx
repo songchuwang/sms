@@ -1,31 +1,23 @@
 import {
-  getPlatformRoleList,
+  exportFile,
   getRechargeRecordList,
-  handleEmployeeAdd,
-  handleEmployeeUpdate,
   removeRule,
   updateRule,
 } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
-import type {
-  ActionType,
-  ProDescriptionsItemProps,
-  ProFormInstance,
-} from '@ant-design/pro-components';
+import type { ActionType, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
   FooterToolbar,
-  ModalForm,
   PageContainer,
   ProDescriptions,
-  ProFormSelect,
-  ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Col, Drawer, message, Row, Space } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import { Button, Drawer, message } from 'antd';
+import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
+const downLoadUrl = '/api/v1/admin/business/recharge/log/export';
 
 /**
  * @en-US Update node
@@ -73,44 +65,19 @@ const handleRemove = async (selectedRows: API.RuleListItem[]) => {
     return false;
   }
 };
-const formItemLayout = {
-  labelCol: { span: 6 },
-  wrapperCol: { span: 18 },
-};
 const TableList: React.FC = () => {
-  const modalFormRef = useRef<ProFormInstance>();
-  /**
-   * @en-US Pop-up window of new window
-   * @zh-CN 新建窗口的弹窗
-   *  */
-  const [createModalOpen, handleModalOpen] = useState<boolean>(false);
-  /**
-   * @en-US The pop-up window of the distribution update window
-   * @zh-CN 分布更新窗口的弹窗
-   * */
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
-  const [roles, setRoles] = useState({});
-  const [modalTitle, setModalTitle] = useState('新建账户');
 
-  useEffect(() => {
-    getPlatformRoleList().then((res) => {
-      let valueEnum = {};
-      res.data.map((item) => {
-        valueEnum[item.roleId] = item.roleName;
-        return item;
-      });
-      setRoles(valueEnum);
-    });
-  }, []);
+  const [downloadFileParams, saveDownloadFileParams] = useState({});
 
-  /**
-   * @en-US International configuration
-   * @zh-CN 国际化配置
-   * */
+  const handleDownLoadFile = () => {
+    console.log('downloadFileParams', downloadFileParams);
+    exportFile(downLoadUrl, downloadFileParams);
+  };
 
   const columns = [
     {
@@ -124,14 +91,14 @@ const TableList: React.FC = () => {
     },
     {
       title: '充值金额',
-      dataIndex: 'account',
+      dataIndex: 'rechargeMoney',
       valueType: 'textarea',
       search: false,
     },
     {
       title: '充值时间',
       sorter: true,
-      dataIndex: 'createTime',
+      dataIndex: 'date',
       valueType: 'dateTime',
     },
   ];
@@ -150,23 +117,22 @@ const TableList: React.FC = () => {
             type="primary"
             key="primary"
             onClick={() => {
-              handleModalOpen(true);
-              if (modalFormRef.current) {
-                setModalTitle('新建账户');
-                modalFormRef.current.resetFields();
-              }
+              handleDownLoadFile();
             }}
           >
             <PlusOutlined /> 导出
           </Button>,
         ]}
-        request={getRechargeRecordList}
-        columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
+        request={(params) => {
+          // 存储一份查询参数，用于导出文件获取
+          let downloadFileParams = JSON.parse(JSON.stringify(params));
+          delete downloadFileParams.current;
+          delete downloadFileParams.pageSize;
+          saveDownloadFileParams(downloadFileParams);
+          return getRechargeRecordList(params);
         }}
+        columns={columns}
+        rowSelection={false}
       />
       {selectedRowsState?.length > 0 && (
         <FooterToolbar
@@ -199,117 +165,6 @@ const TableList: React.FC = () => {
           <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
-      <ModalForm
-        {...formItemLayout}
-        title={modalTitle}
-        width="400px"
-        open={createModalOpen}
-        formRef={modalFormRef}
-        onOpenChange={handleModalOpen}
-        layout={'horizontal'}
-        submitter={{
-          render: (props, doms) => {
-            return (
-              <Row>
-                <Col span={14} offset={2}>
-                  <Space>{doms}</Space>
-                </Col>
-              </Row>
-            );
-          },
-        }}
-        onFinish={async (value) => {
-          console.log('handleAccountEdit', value);
-          let payload = {
-            ...value,
-            roleIdList: [value.roleIdList],
-          };
-          delete payload.method;
-          let result = {};
-          if (modalTitle === '编辑账户') {
-            result = await handleEmployeeUpdate({
-              ...payload,
-              roleId: currentRow?.roleId,
-            });
-          } else {
-            result = await handleEmployeeAdd(payload as API.RuleListItem);
-          }
-          if (result.code === '200') {
-            message.success(modalTitle === '编辑账户' ? '修改成功' : '创建成功');
-            handleModalOpen(false);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          } else {
-            message.error(result.msg);
-          }
-        }}
-      >
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '规则名称为必填项',
-            },
-          ]}
-          label="账户名"
-          width="md"
-          name="account"
-        />
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '规则名称为必填项',
-            },
-          ]}
-          label="姓名"
-          width="md"
-          name="name"
-        />
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '规则名称为必填项',
-            },
-          ]}
-          label="手机号码"
-          width="md"
-          name="phoneNumber"
-        />
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '规则名称为必填项',
-            },
-          ]}
-          label="职位"
-          width="md"
-          name="job"
-        />
-        <ProFormSelect
-          name="roleIdList"
-          width="md"
-          label="角色"
-          valueEnum={roles}
-          initialValue={currentRow?.roleNames}
-        />
-        {modalTitle === '新建账户' ? (
-          <ProFormText
-            rules={[
-              {
-                required: true,
-                message: '规则名称为必填项',
-              },
-            ]}
-            label="初始密码"
-            width="md"
-            name="password"
-          />
-        ) : null}
-      </ModalForm>
       <UpdateForm
         onSubmit={async (value) => {
           const success = await handleUpdate(value);

@@ -1,4 +1,9 @@
-import { getBusinessConsumption } from '@/services/ant-design-pro/api';
+import {
+  getConsumptionLog,
+  getLeftCount,
+  getRechargeLog,
+  getSendCount,
+} from '@/services/ant-design-pro/api';
 
 import {
   AuditOutlined,
@@ -236,48 +241,33 @@ const InfoCard: React.FC<{
 const Welcome: React.FC = () => {
   // const { token } = theme.useToken();
   const { initialState } = useModel('@@initialState');
-  // const [businessCountArr, setBusinessCount] = useState([]);
-  const [businessConsumptionArr, setBusinessConsumption] = useState([]); // 企业消费图表
-  // const [revenueArr, setRevenue] = useState([]); // 企业消费图表
   // 企业消费tab切换
   const [activeTab, setActiveTab] = useState('1');
-  // 平台营收tab
-  // const [activeRevenueTab, setRevenueActiveTab] = useState('2');
-  // 平台短信条数tab
-  // const [activeSMSTab, setSMSActiveTab] = useState('2');
-  // 平台短信条数数据
-  // const [smsCountArr, setSmsCount] = useState([]); // 企业消费图表
 
+  const [chargeActiveTab, setChargeActiveTab] = useState('1');
+
+  // 近期消费记录
+  const [consumptionData, setConsumptionData] = useState([]); // 企业消费图表
+
+  const [sendCountData, setSendCountData] = useState([]); // 发送短信量图表
+
+  const [leftCountData, setLeftCountData] = useState([]); // 短信剩余量图表
+
+  const [rechargeLogData, setRechargeLogData] = useState([]); // 充值记录图表
+  // 消费记录
+  const getConsumptionLogFn = (type = 1) => {
+    let params = {
+      type: type,
+    };
+    getConsumptionLog(params).then((res) => {
+      console.log('getConsumptionLog', res);
+      setConsumptionData(res.list || []);
+    });
+  };
   const onTabChange = (e: RadioChangeEvent) => {
     setActiveTab(e.target.value);
+    getConsumptionLogFn(2);
   };
-  // const onRevenueTabChange = (e: RadioChangeEvent) => {
-  //   setRevenueActiveTab(e.target.value);
-  // };
-  // const onSmsTabChange = (e: RadioChangeEvent) => {
-  //   setSMSActiveTab(e.target.value);
-  // };
-
-  useEffect(() => {
-    // getBusinessCount().then((res) => {
-    //   setBusinessCount(res.list);
-    // });
-    getBusinessConsumption({
-      type: activeTab,
-    }).then((res) => {
-      setBusinessConsumption(res.list);
-    });
-    // getRevenueData({
-    //   type: activeRevenueTab,
-    // }).then((res) => {
-    //   setRevenue(res.list);
-    // });
-    // getSmsData({
-    //   type: activeSMSTab,
-    // }).then((res) => {
-    //   setSmsCount(res.list);
-    // });
-  }, []);
   // 平台企业消费折线图
   const LineChart1 = () => {
     const option = {
@@ -293,13 +283,13 @@ const Welcome: React.FC = () => {
       },
       xAxis: {
         type: 'category',
-        data: businessConsumptionArr.map((item) => item.date),
+        data: consumptionData.map((item) => item.date),
       },
       grid: {
         left: '3%',
         right: '4%',
         bottom: '12%',
-        top: '5%',
+        top: '15%',
         containLabel: true,
       },
       yAxis: {
@@ -308,7 +298,7 @@ const Welcome: React.FC = () => {
       series: [
         {
           name: '消费(元)',
-          data: [820, 932, 901, 934, 1290, 1330, 1320],
+          data: consumptionData.map((item) => item.consumption),
           type: 'line',
           smooth: true,
           label: {
@@ -319,6 +309,13 @@ const Welcome: React.FC = () => {
       ],
     };
     return <ReactEcharts option={option} />;
+  };
+  // 发送短信（条）
+  const getSendCountFn = () => {
+    getSendCount().then((res) => {
+      console.log('getSendCountFn', res);
+      setSendCountData(res.list || []);
+    });
   };
   const LineChart2 = () => {
     const option = {
@@ -334,13 +331,13 @@ const Welcome: React.FC = () => {
       },
       xAxis: {
         type: 'category',
-        data: businessConsumptionArr.map((item) => item.date),
+        data: sendCountData.map((item) => item.date),
       },
       grid: {
         left: '3%',
         right: '4%',
         bottom: '12%',
-        top: '5%',
+        top: '15%',
         containLabel: true,
       },
       yAxis: {
@@ -349,7 +346,7 @@ const Welcome: React.FC = () => {
       series: [
         {
           name: '发送短信(条)',
-          data: [820, 932, 901, 934, 1290, 1330, 1320],
+          data: sendCountData.map((item) => item.sendCount),
           type: 'line',
           smooth: true,
           label: {
@@ -362,6 +359,11 @@ const Welcome: React.FC = () => {
     return <ReactEcharts option={option} />;
   };
   // 剩余短信
+  const getLeftCountFn = () => {
+    getLeftCount().then((res) => {
+      setLeftCountData(res.list || []);
+    });
+  };
   const LineChart3 = () => {
     const option = {
       tooltip: {
@@ -372,17 +374,17 @@ const Welcome: React.FC = () => {
       },
       legend: {
         data: ['剩余短信(条)'],
-        bottom: 10,
+        bottom: 13,
       },
       xAxis: {
         type: 'category',
-        data: businessConsumptionArr.map((item) => item.date),
+        data: leftCountData.map((item) => item.date),
       },
       grid: {
         left: '3%',
         right: '4%',
         bottom: '12%',
-        top: '5%',
+        top: '15%',
         containLabel: true,
       },
       yAxis: {
@@ -391,7 +393,7 @@ const Welcome: React.FC = () => {
       series: [
         {
           name: '剩余短信(条)',
-          data: [820, 932, 901, 934, 1290, 1330, 1320],
+          data: leftCountData.map((item) => item.leftCount),
           type: 'line',
           smooth: true,
           label: {
@@ -402,6 +404,19 @@ const Welcome: React.FC = () => {
       ],
     };
     return <ReactEcharts option={option} />;
+  };
+  //
+  const getRechargeLogFn = (type = 1) => {
+    let params = {
+      type: type,
+    };
+    getRechargeLog(params).then((res) => {
+      setRechargeLogData(res.list || []);
+    });
+  };
+  const onChargeTabChange = (e: RadioChangeEvent) => {
+    setChargeActiveTab(e.target.value);
+    getRechargeLogFn(2);
   };
   // 充值
   const LineChart4 = () => {
@@ -418,13 +433,13 @@ const Welcome: React.FC = () => {
       },
       xAxis: {
         type: 'category',
-        data: businessConsumptionArr.map((item) => item.date),
+        data: rechargeLogData.map((item) => item.date),
       },
       grid: {
         left: '3%',
         right: '4%',
         bottom: '12%',
-        top: '5%',
+        top: '15%',
         containLabel: true,
       },
       yAxis: {
@@ -433,7 +448,7 @@ const Welcome: React.FC = () => {
       series: [
         {
           name: '充值(元)',
-          data: [820, 932, 901, 934, 1290, 1330, 1320],
+          data: rechargeLogData.map((item) => item.rechargeMoney),
           type: 'line',
           smooth: true,
           label: {
@@ -445,6 +460,17 @@ const Welcome: React.FC = () => {
     };
     return <ReactEcharts option={option} />;
   };
+
+  useEffect(() => {
+    // 图表——近期消费记录
+    getConsumptionLogFn();
+    // 发送短信数据
+    getSendCountFn();
+    // 剩余短信量
+    getLeftCountFn();
+    // 充值记录
+    getRechargeLogFn();
+  }, []);
 
   return (
     <PageContainer>
@@ -603,7 +629,7 @@ const Welcome: React.FC = () => {
                   paddingRight: '25px',
                 }}
               >
-                <Radio.Group value={activeTab} onChange={onTabChange} style={{}}>
+                <Radio.Group value={chargeActiveTab} onChange={onChargeTabChange} style={{}}>
                   <Radio.Button value="1">近半年</Radio.Button>
                   <Radio.Button value="2">近一年</Radio.Button>
                 </Radio.Group>

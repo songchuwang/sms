@@ -1,13 +1,23 @@
 import {
   addRule,
+  exportFile,
   getBookGrouptList,
   getGrouptList,
   handleBookGroupAdd,
+  handleContactAdd,
+  handleContactMove,
+  handleContactRemove,
+  handleContactUpdate,
   handleGroupUpdate,
-  removeRule,
   updateRule,
 } from '@/services/ant-design-pro/api';
-import { EditOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  CloudDownloadOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  RetweetOutlined,
+} from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
@@ -15,22 +25,23 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import {
-  FooterToolbar,
   GridContent,
   ModalForm,
   PageContainer,
   ProDescriptions,
   ProFormRadio,
+  ProFormSelect,
   ProFormText,
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Card, Col, Drawer, Menu, message, Row } from 'antd';
+import { Button, Card, Col, Drawer, Menu, message, Popconfirm, Row, Space } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useEffect, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
+const downLoadUrl = '/api/v1/admin/business/address/book/export';
 
 const useStyles = createStyles(({}) => {
   return {
@@ -104,36 +115,15 @@ const handleUpdate = async (fields: FormValueType) => {
   }
 };
 
-/**
- *  Delete node
- * @zh-CN 删除节点
- *
- * @param selectedRows
- */
-const handleRemove = async (selectedRows: API.RuleListItem[]) => {
-  const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
-  try {
-    await removeRule({
-      key: selectedRows.map((row) => row.key),
-    });
-    hide();
-    message.success('Deleted successfully and will refresh soon');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Delete failed, please try again');
-    return false;
-  }
-};
-
 const TableList: React.FC = (props) => {
+  console.log('TableList', props);
+
   const actionDesRef = useRef<ProDescriptionsActionType>();
   /**
    * @en-US Pop-up window of new window
    * @zh-CN 新建窗口的弹窗
    *  */
-  const [createModalOpen, handleModalOpen] = useState<boolean>(false);
+  // const [createModalOpen, handleModalOpen] = useState<boolean>(false);
 
   const [examineModalOpen, handleExamineModalOpen] = useState<boolean>(false);
 
@@ -147,62 +137,68 @@ const TableList: React.FC = (props) => {
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
-  const [groupData, setGroupData] = useState({});
+  const [selectedRowsKeysState, setSelectedRowKeys] = useState<API.RuleListItem[]>([]);
+  const [groupData, setGroupData] = useState([]);
+
+  const [contactModalOpen, handleContactModalOpen] = useState<boolean>(false);
+  const contactFormRef = useRef<ProFormInstance>();
+  const [contactTitle, setContactTitle] = useState('新建联系人');
+
+  const [moveModalOpen, handleMoveModalOpen] = useState<boolean>(false);
+  const moveFormRef = useRef<ProFormInstance>();
+
+  const [downloadFileParams, saveDownloadFileParams] = useState({});
 
   useEffect(() => {
     console.log('groupProps', props, groupData);
-
-    let payload = {
-      groupId: props.groupProps.groupId,
-      pageNum: 1,
-      pageSize: 10,
-    };
-    setGroupData(props);
-    getGrouptList(payload);
+    setGroupData(props.groupData);
   }, [props]);
 
-  /**
-   * @en-US International configuration
-   * @zh-CN 国际化配置
-   * */
+  const handleDownLoadFile = () => {
+    console.log('downloadFileParams', downloadFileParams);
+    exportFile(downLoadUrl, downloadFileParams);
+  };
 
   const columns: ProColumns<API.RuleListItem>[] = [
     {
       title: '序号',
       dataIndex: 'index',
-      tip: 'The rule name is the unique key',
+      valueType: 'textarea',
       search: false,
+      render: (dom, entity, index) => {
+        return index + 1;
+      },
     },
     {
       title: '姓名',
-      dataIndex: 'content',
+      dataIndex: 'name',
       valueType: 'textarea',
     },
     {
       title: '手机号',
-      dataIndex: 'content',
+      dataIndex: 'phoneNumber',
       valueType: 'textarea',
     },
     {
       title: '所属公司',
-      dataIndex: 'content',
+      dataIndex: 'company',
       valueType: 'textarea',
     },
     {
       title: '公司职位',
-      dataIndex: 'content',
+      dataIndex: 'job',
       valueType: 'textarea',
       search: false,
     },
     {
       title: '邮箱',
-      dataIndex: 'content',
+      dataIndex: 'email',
       valueType: 'textarea',
       search: false,
     },
     {
       title: '通讯组',
-      dataIndex: 'content',
+      dataIndex: 'groupName',
       valueType: 'textarea',
       search: false,
     },
@@ -212,45 +208,47 @@ const TableList: React.FC = (props) => {
       valueType: 'option',
       render: (_, record) => [
         <a
-          key="config"
+          key="edit"
           onClick={() => {
-            handleExamineModalOpen(true);
+            handleContactModalOpen(true);
+            setContactTitle('编辑联系人');
             setCurrentRow(record);
+            if (contactFormRef.current) {
+              contactFormRef.current.setFieldsValue(record);
+            }
           }}
         >
           编辑
         </a>,
-        <a
-          onClick={() => {
-            // handleNotesModalOpen(true);
-            setShowDetail(true);
-            setCurrentRow(record);
+        <Popconfirm
+          key="del"
+          style={{ display: 'none' }}
+          title="确定要删除该联系人吗？"
+          onConfirm={async () => {
+            let payload = {
+              idList: [record.id],
+            };
+            await handleContactRemove(payload);
+            if (actionRef.current) {
+              actionRef.current.reload();
+            }
           }}
-          key="subscribeAlert"
         >
-          删除
-        </a>,
-        // render: (dom, entity) => {
-        //   return (
-        //     <a
-        //       onClick={() => {
-        //         setCurrentRow(entity);
-        //         setShowDetail(true);
-        //       }}
-        //     >
-        //       {dom}
-        //     </a>
-        //   );
-        // },
+          <a>删除</a>
+        </Popconfirm>,
       ],
     },
   ];
+  const formItemLayout = {
+    labelCol: { span: 6 },
+    wrapperCol: { span: 18 },
+  };
   return (
     <PageContainer>
       <ProTable<API.RuleListItem, API.PageParams>
         headerTitle={'查询表格'}
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="id"
         search={{
           labelWidth: 120,
         }}
@@ -259,81 +257,147 @@ const TableList: React.FC = (props) => {
             type="primary"
             key="primary"
             onClick={() => {
-              handleModalOpen(true);
+              handleContactModalOpen(true);
+              if (contactFormRef.current) {
+                // setModalTitle('新建账户');
+                contactFormRef.current.resetFields();
+              }
             }}
           >
-            <PlusOutlined /> 移动分组
+            <PlusOutlined /> 添加联系人
           </Button>,
           <Button
             type="primary"
             key="primary"
             onClick={() => {
-              handleModalOpen(true);
+              if (!selectedRowsKeysState.length) {
+                message.warning('请先勾选要移动的联系人');
+                return;
+              }
+              handleMoveModalOpen(true);
             }}
           >
-            <PlusOutlined /> 批量删除
+            <RetweetOutlined /> 移动分组
           </Button>,
+          <Popconfirm
+            key="removeContact"
+            style={{ display: 'none' }}
+            title="确定要删除选定的联系人吗？"
+            onConfirm={async () => {
+              if (!selectedRowsKeysState.length) {
+                message.warning('请先勾选要删除的联系人');
+                return;
+              }
+              let payload = {
+                idList: selectedRowsKeysState,
+              };
+              await handleContactRemove(payload);
+              setSelectedRowKeys([]);
+              setSelectedRows([]);
+              message.success('删除成功');
+              if (actionRef.current) {
+                actionRef.current.reload();
+              }
+
+              // let payload = {
+              //   idList: [record.id]
+              // }
+              // await handleContactRemove(payload);
+              // if (actionRef.current) {
+              //   actionRef.current.reload();
+              // }
+            }}
+          >
+            <Button type="primary" key="primary">
+              <DeleteOutlined /> 批量删除
+            </Button>
+          </Popconfirm>,
           <Button
             type="primary"
             key="primary"
             onClick={() => {
-              handleModalOpen(true);
+              handleDownLoadFile();
             }}
           >
-            <PlusOutlined /> 导出列表
+            <CloudDownloadOutlined /> 导出列表
           </Button>,
         ]}
-        request={getGrouptList}
+        params={{
+          groupId: props.groupProps.groupId,
+        }}
+        request={(params) => {
+          console.log('paramsparams', params);
+          let payload = {
+            ...params,
+            pageNum: params.current,
+            // pageSize: 10,
+            // type: statisticsType,
+          };
+          delete payload.current;
+          let downloadFileParams = JSON.parse(JSON.stringify(params));
+          delete downloadFileParams.current;
+          delete downloadFileParams.pageSize;
+          saveDownloadFileParams(downloadFileParams);
+          return getGrouptList(payload);
+        }}
+        // request={getGrouptList}
         columns={columns}
         rowSelection={{
-          onChange: (_, selectedRows) => {
+          selectedRowKeys: selectedRowsKeysState,
+          onChange: (keys, selectedRows) => {
+            console.log('selectedRowsState', keys, selectedRowsState);
             setSelectedRows(selectedRows);
+            setSelectedRowKeys(keys);
           },
         }}
       />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              已选择{' '}
-              <a
-                style={{
-                  fontWeight: 600,
-                }}
-              >
-                {selectedRowsState.length}
-              </a>{' '}
-              项 &nbsp;&nbsp;
-              <span>
-                服务调用次数总计 {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)} 万
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            批量删除
-          </Button>
-          <Button type="primary">批量审批</Button>
-        </FooterToolbar>
-      )}
       <ModalForm
-        title={'新建规则'}
+        {...formItemLayout}
+        title={contactTitle}
         width="400px"
-        open={createModalOpen}
-        onOpenChange={handleModalOpen}
+        open={contactModalOpen}
+        formRef={contactFormRef}
+        onOpenChange={handleContactModalOpen}
+        layout={'horizontal'}
+        submitter={{
+          render: (props, doms) => {
+            return (
+              <Row>
+                <Col span={14} offset={2}>
+                  <Space>{doms}</Space>
+                </Col>
+              </Row>
+            );
+          },
+        }}
         onFinish={async (value) => {
-          const success = await handleAdd(value as API.RuleListItem);
-          if (success) {
-            handleModalOpen(false);
+          console.log('handleAccountEdit', value);
+          // let payload = {
+          //   ...value,
+          //   roleIdList: [value.roleIdList],
+          // };
+          // delete payload.method;
+          let result = {};
+          if (contactTitle === '编辑联系人') {
+            result = await handleContactUpdate({
+              ...value,
+              id: currentRow?.id,
+            });
+          } else {
+            result = await handleContactAdd(value as API.RuleListItem);
+          }
+          if (result.code === '200') {
+            message.success(contactTitle === '编辑联系人' ? '修改成功' : '添加成功');
+            props.updateGroup();
+            handleContactModalOpen(false);
+            if (contactFormRef.current) {
+              contactFormRef.current.resetFields();
+            }
             if (actionRef.current) {
               actionRef.current.reload();
             }
+          } else {
+            message.error(result.msg);
           }
         }}
       >
@@ -344,10 +408,125 @@ const TableList: React.FC = (props) => {
               message: '规则名称为必填项',
             },
           ]}
+          label="姓名"
           width="md"
           name="name"
         />
-        <ProFormTextArea width="md" name="desc" />
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '规则名称为必填项',
+            },
+          ]}
+          label="手机号"
+          width="md"
+          name="phoneNumber"
+        />
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '规则名称为必填项',
+            },
+          ]}
+          label="所属公司"
+          width="md"
+          name="company"
+        />
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '规则名称为必填项',
+            },
+          ]}
+          label="公司职务"
+          width="md"
+          name="job"
+        />
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '规则名称为必填项',
+            },
+          ]}
+          label="邮箱"
+          width="md"
+          name="email"
+        />
+        <ProFormSelect name="groupId" width="md" label="通讯组" valueEnum={groupData} />
+      </ModalForm>
+      {/* 移动分组 */}
+      <ModalForm
+        {...formItemLayout}
+        title={'移动分组'}
+        width="400px"
+        open={moveModalOpen}
+        formRef={moveFormRef}
+        onOpenChange={handleMoveModalOpen}
+        layout={'horizontal'}
+        submitter={{
+          render: (props, doms) => {
+            return (
+              <Row>
+                <Col span={14} offset={2}>
+                  <Space>{doms}</Space>
+                </Col>
+              </Row>
+            );
+          },
+        }}
+        onFinish={async (value) => {
+          console.log('moveValue', value, selectedRowsKeysState);
+          let result = {};
+          let payload = {
+            ...value,
+            idList: selectedRowsKeysState,
+          };
+          result = await handleContactMove(payload);
+          if (result.code === '200') {
+            message.success('移动成功');
+            props.updateGroup();
+            handleMoveModalOpen(false);
+            setSelectedRowKeys([]);
+            setSelectedRows([]);
+            // if (moveFormRef.current) {
+            //   moveFormRef.current.resetFields();
+            // }
+            if (actionRef.current) {
+              actionRef.current.reload();
+            }
+          } else {
+            message.error(result.msg);
+          }
+
+          // if (contactTitle === '编辑联系人') {
+          //   result = await handleContactUpdate({
+          //     ...value,
+          //     id: currentRow?.id,
+          //   });
+          // } else {
+          //   result = await handleContactAdd(value as API.RuleListItem);
+          // }
+          // if (result.code === '200') {
+          //   message.success(contactTitle === '编辑联系人' ? '修改成功' : '添加成功');
+          //   props.updateGroup()
+          //   handleContactModalOpen(false);
+          //   if (contactFormRef.current) {
+          //     contactFormRef.current.resetFields();
+          //   }
+          //   if (actionRef.current) {
+          //     actionRef.current.reload();
+          //   }
+          // } else {
+          //   message.error(result.msg);
+          // }
+        }}
+      >
+        <ProFormSelect name="groupId" width="md" label="通讯组" valueEnum={groupData} />
+        <span>当前已选择{selectedRowsKeysState.length}人</span>
       </ModalForm>
       <ModalForm
         title={'短信审核'}
@@ -547,6 +726,8 @@ const Center: React.FC = () => {
   const [currentGroupItem, setCurrentGroupItem] = useState(null);
 
   const [groupProps, updatePage] = useState({});
+
+  const [groupData, setGroupData] = useState({});
   // 新建分组ref
   const createGroupRef = useRef<ProFormInstance>();
 
@@ -554,6 +735,14 @@ const Center: React.FC = () => {
     getBookGrouptList().then((res) => {
       console.log('getBookGrouptList', res);
       let data = res.data || [];
+
+      let valueEnum = {};
+      data.map((item) => {
+        valueEnum[item.groupId] = item.groupName;
+        return item;
+      });
+      setGroupData(valueEnum);
+
       let menuChildren = data.map((item, index) => {
         return {
           key: index,
@@ -665,8 +854,11 @@ const Center: React.FC = () => {
             //   setTabKey(_tabKey as tabKeyType);
             // }}
           >
-            {/* <div>1111</div> */}
-            <TableList groupProps={groupProps} />
+            <TableList
+              groupProps={groupProps}
+              groupData={groupData}
+              updateGroup={getBookGrouptListFn}
+            />
           </Card>
         </Col>
       </Row>

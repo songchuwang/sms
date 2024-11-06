@@ -1,21 +1,23 @@
-import { addRule, getSmsItemList, removeRule, updateRule } from '@/services/ant-design-pro/api';
+import { addRule, exportFile, getSmsItemList, updateRule } from '@/services/ant-design-pro/api';
 import { EditOutlined, VerticalAlignBottomOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
-import {
-  FooterToolbar,
-  ModalForm,
-  PageContainer,
-  ProDescriptions,
-  ProTable,
-} from '@ant-design/pro-components';
+import { ModalForm, PageContainer, ProDescriptions, ProTable } from '@ant-design/pro-components';
 import '@umijs/max';
 import { Button, Drawer, Input, message } from 'antd';
 
 import React, { useRef, useState } from 'react';
+import { history } from 'umi';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 
 const { TextArea } = Input;
+
+const downLoadUrl = '/api/v1/admin/business/sms/item/export';
+
+// 跳转到指定页面并携带参数
+const goToPageWithParams = (mobile) => {
+  history.push(`/smsManage/sendSms?mobile=${mobile}`);
+};
 
 /**
  * @en-US Add node
@@ -62,28 +64,6 @@ const handleUpdate = async (fields: FormValueType) => {
   }
 };
 
-/**
- *  Delete node
- * @zh-CN 删除节点
- *
- * @param selectedRows
- */
-const handleRemove = async (selectedRows: API.RuleListItem[]) => {
-  const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
-  try {
-    await removeRule({
-      key: selectedRows.map((row) => row.key),
-    });
-    hide();
-    message.success('Deleted successfully and will refresh soon');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Delete failed, please try again');
-    return false;
-  }
-};
 const TableList: React.FC = () => {
   /**
    * @en-US Pop-up window of new window
@@ -99,6 +79,15 @@ const TableList: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
+  const [selectedRowsKeysState, setSelectedRowKeys] = useState<API.RuleListItem[]>([]);
+
+  const [downloadFileParams, saveDownloadFileParams] = useState({});
+
+  const handleDownLoadFile = () => {
+    console.log('downloadFileParams', downloadFileParams);
+
+    exportFile(downLoadUrl, downloadFileParams);
+  };
 
   /**
    * @en-US International configuration
@@ -133,6 +122,7 @@ const TableList: React.FC = () => {
     {
       title: '短信内容',
       dataIndex: 'content',
+      search: false,
     },
     {
       title: '发送状态',
@@ -146,11 +136,13 @@ const TableList: React.FC = () => {
     {
       title: '回复内容',
       dataIndex: 'replyContent',
+      search: false,
     },
     {
       title: '回复时间',
       dataIndex: 'replyTime',
       valueType: 'dateTime',
+      search: false,
     },
     {
       title: '操作',
@@ -161,9 +153,9 @@ const TableList: React.FC = () => {
           key="config"
           onClick={() => {
             console.log('操作', _, record);
-
             // handleUpdateModalOpen(true);
             // setCurrentRow(record);
+            goToPageWithParams(record.mobile);
           }}
         >
           回复
@@ -176,69 +168,59 @@ const TableList: React.FC = () => {
       <ProTable<API.RuleListItem, API.PageParams>
         headerTitle={'查询表格'}
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="smsItemId"
         search={{
           labelWidth: 120,
         }}
-        toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleModalOpen(true);
-            }}
-          >
-            <EditOutlined /> 批量回复
-          </Button>,
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleModalOpen(true);
-            }}
-          >
-            <VerticalAlignBottomOutlined /> 导出
-          </Button>,
-        ]}
-        request={getSmsItemList}
+        toolBarRender={(value) => {
+          console.log('toolBarRender', value);
+
+          return [
+            <Button
+              type="primary"
+              key="primary"
+              onClick={() => {
+                if (!selectedRowsKeysState.length) {
+                  message.warning('请先勾选行数据');
+                  return;
+                }
+                let mobiles = selectedRowsState.map((item) => item.mobile).join(',');
+                console.log('mobiles', mobiles);
+                goToPageWithParams(mobiles);
+              }}
+            >
+              <EditOutlined /> 批量回复
+            </Button>,
+            <Button
+              type="primary"
+              key="primary"
+              onClick={() => {
+                handleDownLoadFile();
+              }}
+            >
+              <VerticalAlignBottomOutlined /> 导出
+            </Button>,
+          ];
+        }}
+        request={(params) => {
+          console.log('paramsparams', params);
+          // 存储一份查询参数，用于导出文件获取
+          let downloadFileParams = JSON.parse(JSON.stringify(params));
+          delete downloadFileParams.current;
+          delete downloadFileParams.pageSize;
+          saveDownloadFileParams(downloadFileParams);
+          return getSmsItemList(params);
+        }}
         columns={columns}
         rowSelection={{
-          onChange: (_, selectedRows) => {
+          selectedRowKeys: selectedRowsKeysState,
+          onChange: (keys, selectedRows) => {
+            console.log('selectedRowsState', keys, selectedRowsState);
             setSelectedRows(selectedRows);
+            setSelectedRowKeys(keys);
           },
         }}
       />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              已选择{' '}
-              <a
-                style={{
-                  fontWeight: 600,
-                }}
-              >
-                {selectedRowsState.length}
-              </a>{' '}
-              项 &nbsp;&nbsp;
-              <span>
-                服务调用次数总计 {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)} 万
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            批量删除
-          </Button>
-          <Button type="primary">批量审批</Button>
-        </FooterToolbar>
-      )}
       <ModalForm
         title={'批量回复'}
         width="500px"

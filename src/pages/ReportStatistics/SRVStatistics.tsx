@@ -1,4 +1,10 @@
-import { addRule, getRechargeList, removeRule, updateRule } from '@/services/ant-design-pro/api';
+import {
+  addRule,
+  exportFile,
+  getSendorreceiveList,
+  removeRule,
+  updateRule,
+} from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
@@ -16,6 +22,7 @@ import { Button, Drawer, Input, message, Tabs } from 'antd';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
+const downLoadUrl = '/api/v1/admin/business/report/sendorreceive/export';
 
 /**
  * @en-US Add node
@@ -100,6 +107,14 @@ const TableList: React.FC = () => {
   const [statisticsType, setType] = useState(1);
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
+
+  const handleDownLoadFile = () => {
+    let payload = {
+      type: statisticsType,
+    };
+    exportFile(downLoadUrl, { ...payload });
+  };
+
   const [columns, setColumns] = useState([
     {
       title: '序号',
@@ -275,7 +290,7 @@ const TableList: React.FC = () => {
             type="primary"
             key="primary"
             onClick={() => {
-              handleModalOpen(true);
+              handleDownLoadFile();
             }}
           >
             <PlusOutlined /> 导出
@@ -288,7 +303,11 @@ const TableList: React.FC = () => {
             pageSize: 10,
             type: statisticsType,
           };
-          return getRechargeList(payload);
+          // let downloadFileParams = JSON.parse(JSON.stringify(params))
+          // delete downloadFileParams.current
+          // delete downloadFileParams.pageSize
+          // saveDownloadFileParams(downloadFileParams)
+          return getSendorreceiveList(payload);
         }}
         options={false}
         columns={columns}

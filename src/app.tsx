@@ -72,9 +72,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       }
     },
     headerContentRender: () => {
-      return initialState &&
-        initialState?.currentUser &&
-        initialState?.currentUser.businessStatus !== 2 ? (
+      return initialState && initialState?.currentUser && initialState?.currentUser.status !== 2 ? (
         <div
           style={{
             display: 'flex',

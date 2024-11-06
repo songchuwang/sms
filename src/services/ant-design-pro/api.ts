@@ -2,6 +2,19 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
+function toQueryString(obj) {
+  return Object.keys(obj)
+    .map((key) => {
+      if (Array.isArray(obj[key])) {
+        return obj[key]
+          .map((arrayValue) => `${encodeURIComponent(key)}=${encodeURIComponent(arrayValue)}`)
+          .join('&');
+      }
+      return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
+    })
+    .join('&');
+}
+
 /** 获取当前的用户 GET /api/currentUser */
 export async function currentUser(options?: { [key: string]: any }) {
   return request<{
@@ -10,6 +23,43 @@ export async function currentUser(options?: { [key: string]: any }) {
     method: 'GET',
     ...(options || {}),
   });
+}
+
+export async function exportFile(url: string, options?: { [key: string]: any }) {
+  let _params = toQueryString(options);
+  let _url = url;
+  if (Object.keys(options).length) {
+    _url += '?' + _params;
+  }
+  return request<{
+    data: API.CurrentUser;
+  }>(_url, {
+    method: 'GET',
+    responseType: 'blob',
+    ...(options || {}),
+  })
+    .then((response) => {
+      console.log('导出文件结果', response);
+      // 创建一个指向Blob的URL
+      const blobUrl = URL.createObjectURL(response);
+
+      // 创建一个临时的下载链接
+      const downloadLink = document.createElement('a');
+      downloadLink.href = blobUrl;
+      downloadLink.download = '导出数据.xlsx'; // 设置下载文件名
+
+      // 触发下载
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+
+      // 清理临时元素和URL对象
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(blobUrl);
+    })
+    .catch((error) => {
+      // 处理错误
+      console.error('下载失败:', error);
+    });
 }
 
 /** 退出登录接口 POST /api/login/outLogin */
@@ -24,6 +74,17 @@ export async function outLogin(options?: { [key: string]: any }) {
 /** 登录接口 POST /api/login/account */
 export async function login(body: API.LoginParams, options?: { [key: string]: any }) {
   return request<API.LoginResult>('/api/v1/admin/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+export async function mobileLogin(body: API.LoginParams, options?: { [key: string]: any }) {
+  return request<API.LoginResult>('/api/v1/admin/loginByCode', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -94,6 +155,26 @@ export async function addRule(options?: { [key: string]: any }) {
   });
 }
 
+export async function getCaptcha(options?: { [key: string]: any }) {
+  return request<API.RuleListItem>('/api/v1/admin/sms/code', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+}
+
+export async function findPwd(options?: { [key: string]: any }) {
+  return request<API.RuleListItem>('/api/v1/admin/find/password', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+}
+
 export async function handleBookGroupAdd(options?: { [key: string]: any }) {
   return request<API.RuleListItem>('/api/v1/admin/business/address/book/group/add', {
     method: 'POST',
@@ -154,6 +235,23 @@ export async function getRechargeList(options?: { [key: string]: any }) {
     },
   });
   console.log('getAccountList result', msg);
+  return {
+    data: msg.list,
+    success: msg.success,
+    total: msg.total,
+  };
+}
+
+export async function getSendorreceiveList(options?: { [key: string]: any }) {
+  console.log('getAccountList', options);
+
+  const msg = await request<API.RuleList>('/api/v1/admin/business/report/sendorreceive/page', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
   return {
     data: msg.list,
     success: msg.success,
@@ -267,6 +365,36 @@ export async function handleEmployeeRemove(options?: { [key: string]: any }) {
   });
 }
 
+export async function handleContactAdd(options?: { [key: string]: any }) {
+  return request<API.RuleListItem>('/api/v1/admin/business/address/book/add', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+}
+
+export async function handleContactUpdate(options?: { [key: string]: any }) {
+  return request<API.RuleListItem>('/api/v1/admin/business/address/book/update', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+}
+
+export async function handleContactMove(options?: { [key: string]: any }) {
+  return request<API.RuleListItem>('/api/v1/admin/business/address/book/move', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+}
+
 export async function handleEmployeeAdd(options?: { [key: string]: any }) {
   return request<API.RuleListItem>('/api/v1/admin/business/user/add', {
     method: 'POST',
@@ -315,6 +443,26 @@ export async function getBusinessCount() {
   });
 }
 
+export async function getConsumptionLog(options?: { [key: string]: any }) {
+  console.log('getRoleList', options);
+  return request<API.RuleList>('/api/v1/admin/home/business/statistics/consumption/log', {
+    method: 'GET',
+    params: {
+      ...options,
+    },
+  });
+}
+
+export async function getRechargeLog(options?: { [key: string]: any }) {
+  console.log('getRoleList', options);
+  return request<API.RuleList>('/api/v1/admin/home/business/statistics/recharge/log', {
+    method: 'GET',
+    params: {
+      ...options,
+    },
+  });
+}
+
 export async function getBusinessConsumption(
   params: {
     businessId?: string;
@@ -360,6 +508,18 @@ export async function getSmsData(
       ...params,
     },
     ...(options || {}),
+  });
+}
+
+export async function getSendCount() {
+  return request<API.RuleList>('/api/v1/admin/home/business/statistics/sms/send/count', {
+    method: 'GET',
+  });
+}
+
+export async function getLeftCount() {
+  return request<API.RuleList>('/api/v1/admin/home/business/statistics/sms/left/count', {
+    method: 'GET',
   });
 }
 
@@ -477,6 +637,16 @@ export async function handleTempUpdate(options?: { [key: string]: any }) {
 }
 export async function handleSignUpdate(options?: { [key: string]: any }) {
   return request<API.RuleListItem>('/api/v1/admin/business/sms/sign/update', {
+    method: 'POST',
+    data: {
+      method: 'post',
+      ...(options || {}),
+    },
+  });
+}
+
+export async function handleContactRemove(options?: { [key: string]: any }) {
+  return request<API.RuleListItem>('/api/v1/admin/business/address/book/delete', {
     method: 'POST',
     data: {
       method: 'post',

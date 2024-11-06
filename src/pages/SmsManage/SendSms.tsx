@@ -36,6 +36,7 @@ import {
 } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'umi';
 import MessagePreview from './components/MessagePreview';
 
 type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
@@ -100,6 +101,26 @@ const Center: React.FC = () => {
   const [showTime, showTimePicker] = useState(false);
 
   const [pickTime, setTime] = useState('');
+
+  const location = useLocation();
+
+  useEffect(() => {
+    const queryMobile = new URLSearchParams(location.search).get('mobile');
+    console.log('queryMobile', queryMobile);
+    if (queryMobile?.length) {
+      let payload = [];
+      let mobileSplit = queryMobile.split(',');
+      mobileSplit.map((item) => {
+        payload.push({
+          mobile: item,
+          name: '-',
+          group: '-',
+        });
+        return item;
+      });
+      setNumberPool(payload);
+    }
+  }, []);
 
   const onOk = (value: DatePickerProps['value'] | RangePickerProps['value']) => {
     console.log('onOk: ', value);
