@@ -405,7 +405,7 @@ const TableList: React.FC = (props) => {
           rules={[
             {
               required: true,
-              message: '规则名称为必填项',
+              message: '姓名为必填项',
             },
           ]}
           label="姓名"
@@ -416,7 +416,7 @@ const TableList: React.FC = (props) => {
           rules={[
             {
               required: true,
-              message: '规则名称为必填项',
+              message: '手机号为必填项',
             },
           ]}
           label="手机号"
@@ -427,7 +427,7 @@ const TableList: React.FC = (props) => {
           rules={[
             {
               required: true,
-              message: '规则名称为必填项',
+              message: '所属公司为必填项',
             },
           ]}
           label="所属公司"
@@ -438,7 +438,7 @@ const TableList: React.FC = (props) => {
           rules={[
             {
               required: true,
-              message: '规则名称为必填项',
+              message: '公司职务为必填项',
             },
           ]}
           label="公司职务"
@@ -449,14 +449,29 @@ const TableList: React.FC = (props) => {
           rules={[
             {
               required: true,
-              message: '规则名称为必填项',
+              message: '邮箱为必填项',
+            },
+            {
+              pattern: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/,
+              message: '不合法的邮箱',
             },
           ]}
           label="邮箱"
           width="md"
           name="email"
         />
-        <ProFormSelect name="groupId" width="md" label="通讯组" valueEnum={groupData} />
+        <ProFormSelect
+          rules={[
+            {
+              required: true,
+              message: '请选择通讯组',
+            },
+          ]}
+          name="groupId"
+          width="md"
+          label="通讯组"
+          valueEnum={groupData}
+        />
       </ModalForm>
       {/* 移动分组 */}
       <ModalForm
@@ -525,7 +540,18 @@ const TableList: React.FC = (props) => {
           // }
         }}
       >
-        <ProFormSelect name="groupId" width="md" label="通讯组" valueEnum={groupData} />
+        <ProFormSelect
+          rules={[
+            {
+              required: true,
+              message: '请选择通讯组',
+            },
+          ]}
+          name="groupId"
+          width="md"
+          label="通讯组"
+          valueEnum={groupData}
+        />
         <span>当前已选择{selectedRowsKeysState.length}人</span>
       </ModalForm>
       <ModalForm

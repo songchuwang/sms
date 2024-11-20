@@ -5,7 +5,6 @@ import {
   removeRule,
   updateRule,
 } from '@/services/ant-design-pro/api';
-import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsActionType } from '@ant-design/pro-components';
 import {
   FooterToolbar,
@@ -285,15 +284,15 @@ const TableList: React.FC = () => {
           labelWidth: 120,
         }}
         toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleModalOpen(true);
-            }}
-          >
-            <PlusOutlined /> 新建
-          </Button>,
+          // <Button
+          //   type="primary"
+          //   key="primary"
+          //   onClick={() => {
+          //     handleModalOpen(true);
+          //   }}
+          // >
+          //   <PlusOutlined /> 新建
+          // </Button>,
         ]}
         request={getSmsList}
         columns={columns}

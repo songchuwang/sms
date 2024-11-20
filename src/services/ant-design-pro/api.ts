@@ -94,17 +94,6 @@ export async function mobileLogin(body: API.LoginParams, options?: { [key: strin
   });
 }
 
-// export async function login(body: API.LoginParams, options?: { [key: string]: any }) {
-//   return request<API.LoginResult>('/api/login/account', {
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/json',
-//     },
-//     data: body,
-//     ...(options || {}),
-//   });
-// }
-
 /** 此处后端没有提供注释 GET /api/notices */
 export async function getNotices(options?: { [key: string]: any }) {
   return request<API.NoticeIconList>('/api/notices', {
@@ -207,16 +196,18 @@ export async function removeRule(options?: { [key: string]: any }) {
 }
 
 export async function getEmployeeList(options?: { [key: string]: any }) {
-  console.log('getAccountList', options);
-
+  let payload = {
+    ...options,
+    pageNum: options.current,
+  };
+  delete payload.current;
   const msg = await request<API.RuleList>('/api/v1/admin/business/user/page', {
     method: 'POST',
     data: {
       method: 'post',
-      ...(options || {}),
+      ...(payload || {}),
     },
   });
-  console.log('getAccountList result', msg);
   return {
     data: msg.list,
     success: msg.success,
@@ -225,16 +216,19 @@ export async function getEmployeeList(options?: { [key: string]: any }) {
 }
 
 export async function getRechargeList(options?: { [key: string]: any }) {
-  console.log('getAccountList', options);
+  let payload = {
+    ...options,
+    pageNum: options.current,
+  };
+  delete payload.current;
 
   const msg = await request<API.RuleList>('/api/v1/admin/business/report/recharge/page', {
     method: 'POST',
     data: {
       method: 'post',
-      ...(options || {}),
+      ...(payload || {}),
     },
   });
-  console.log('getAccountList result', msg);
   return {
     data: msg.list,
     success: msg.success,
@@ -243,13 +237,16 @@ export async function getRechargeList(options?: { [key: string]: any }) {
 }
 
 export async function getSendorreceiveList(options?: { [key: string]: any }) {
-  console.log('getAccountList', options);
-
+  let payload = {
+    ...options,
+    pageNum: options.current,
+  };
+  delete payload.current;
   const msg = await request<API.RuleList>('/api/v1/admin/business/report/sendorreceive/page', {
     method: 'POST',
     data: {
       method: 'post',
-      ...(options || {}),
+      ...(payload || {}),
     },
   });
   return {
@@ -260,13 +257,16 @@ export async function getSendorreceiveList(options?: { [key: string]: any }) {
 }
 
 export async function getRechargeRecordList(options?: { [key: string]: any }) {
-  console.log('getAccountList', options);
-
+  let payload = {
+    ...options,
+    pageNum: options.current,
+  };
+  delete payload.current;
   const msg = await request<API.RuleList>('/api/v1/admin/business/recharge/log/page', {
     method: 'POST',
     data: {
       method: 'post',
-      ...(options || {}),
+      ...(payload || {}),
     },
   });
   return {
@@ -277,11 +277,16 @@ export async function getRechargeRecordList(options?: { [key: string]: any }) {
 }
 
 export async function getConsumptionList(options?: { [key: string]: any }) {
+  let payload = {
+    ...options,
+    pageNum: options.current,
+  };
+  delete payload.current;
   const msg = await request<API.RuleList>('/api/v1/admin/business/consumption/page', {
     method: 'POST',
     data: {
       method: 'post',
-      ...(options || {}),
+      ...(payload || {}),
     },
   });
   return {
@@ -307,11 +312,16 @@ export async function getBookGrouptList(options?: { [key: string]: any }) {
 }
 
 export async function getGrouptList(options?: { [key: string]: any }) {
+  let payload = {
+    ...options,
+    pageNum: options.current,
+  };
+  delete payload.current;
   const msg = await request<API.RuleList>('/api/v1/admin/business/address/book/page', {
     method: 'POST',
     data: {
       method: 'post',
-      ...(options || {}),
+      ...(payload || {}),
     },
   });
   return {
@@ -322,15 +332,18 @@ export async function getGrouptList(options?: { [key: string]: any }) {
 }
 
 export async function getSmsItemList(options?: { [key: string]: any }) {
-  console.log('getPlatformRoleList', options);
+  let payload = {
+    ...options,
+    pageNum: options.current,
+  };
+  delete payload.current;
   const msg = await request<API.RuleList>('/api/v1/admin/business/sms/item/page', {
     method: 'POST',
     data: {
       method: 'post',
-      ...(options || {}),
+      ...(payload || {}),
     },
   });
-  console.log('getPlatformRoleList result', msg);
   return {
     data: msg.list,
     success: msg.success,
@@ -538,12 +551,17 @@ export async function getSignList() {
 
 export async function getSmsList(options?: { [key: string]: any }) {
   console.log('getAccountList', options);
+  let payload = {
+    ...options,
+    pageNum: options.current,
+  };
+  delete payload.current;
 
   const msg = await request<API.RuleList>('/api/v1/admin/business/sms/page', {
     method: 'POST',
     data: {
       method: 'post',
-      ...(options || {}),
+      ...(payload || {}),
     },
   });
   console.log('getAccountList result', msg);
@@ -575,15 +593,18 @@ export async function handleSmsExamine(options?: { [key: string]: any }) {
 }
 
 export async function getTempList(options?: { [key: string]: any }) {
-  console.log('getAccountList', options);
+  let payload = {
+    ...options,
+    pageNum: options.current,
+  };
+  delete payload.current;
   const msg = await request<API.RuleList>('/api/v1/admin/business/sms/template/page', {
     method: 'POST',
     data: {
       method: 'post',
-      ...(options || {}),
+      ...(payload || {}),
     },
   });
-  console.log('getAccountList result', msg);
   return {
     data: msg.list,
     success: msg.success,
@@ -592,15 +613,18 @@ export async function getTempList(options?: { [key: string]: any }) {
 }
 
 export async function getSignatureList(options?: { [key: string]: any }) {
-  console.log('getAccountList', options);
+  let payload = {
+    ...options,
+    pageNum: options.current,
+  };
+  delete payload.current;
   const msg = await request<API.RuleList>('/api/v1/admin/business/sms/sign/page', {
     method: 'POST',
     data: {
       method: 'post',
-      ...(options || {}),
+      ...(payload || {}),
     },
   });
-  console.log('getAccountList result', msg);
   return {
     data: msg.list,
     success: msg.success,

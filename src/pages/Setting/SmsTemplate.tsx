@@ -23,7 +23,8 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Col, Drawer, Input, message, Popconfirm, Row, Space } from 'antd';
+import { Button, Col, Drawer, message, Popconfirm, Row, Space } from 'antd';
+import moment from 'moment';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
@@ -109,26 +110,29 @@ const TableList: React.FC = () => {
       dataIndex: 'name',
       valueType: 'textarea',
       search: false,
+      ellipsis: true,
     },
     {
       title: '模板内容',
       dataIndex: 'content',
       valueType: 'textarea',
+      ellipsis: true,
     },
     {
       title: '创建时间',
       sorter: true,
       dataIndex: 'createTime',
-      valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder={'请输入异常原因！'} />;
-        }
-        return defaultRender(item);
+      valueType: 'dateRange',
+      search: {
+        transform: (value) => {
+          console.log('transform', value);
+          return { startTime: new Date(value[0]).getTime(), endTime: new Date(value[1]).getTime() };
+        },
+      },
+      render: (_, record) => {
+        console.log('recordrecord', _, record);
+
+        return <span>{moment(record.createTime).format('YYYY-MM-DD HH:mm:ss')}</span>;
       },
     },
     {
@@ -207,11 +211,7 @@ const TableList: React.FC = () => {
         ]}
         request={getTempList}
         columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
-        }}
+        rowSelection={false}
       />
       {selectedRowsState?.length > 0 && (
         <FooterToolbar
@@ -273,6 +273,7 @@ const TableList: React.FC = () => {
           if (modalTitle === '编辑模板') {
             result = await handleTempUpdate({
               ...payload,
+              templateId: currentRow.templateId,
             });
           } else {
             result = await handleTempAdd(payload as API.RuleListItem);

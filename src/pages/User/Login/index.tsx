@@ -138,15 +138,13 @@ const Login: React.FC = () => {
       console.log('【msg】', msg);
 
       if (msg.code === '200') {
-        const defaultLoginSuccessMessage = '登录成功！';
-        message.success(defaultLoginSuccessMessage);
         localStorage.setItem('token', JSON.stringify(msg?.data?.token));
         await fetchUserInfo(msg.data);
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
         return;
       } else {
-        message.error(msg.msg);
+        // message.error(msg.msg);
       }
       console.log(msg);
       // 如果失败去设置用户错误信息
@@ -214,10 +212,13 @@ const Login: React.FC = () => {
                   phoneNumber: phone,
                   type: 'forgetpsw',
                 });
-                if (!result) {
-                  return;
+                if (result) {
+                  if (result.code === '200') {
+                    message.success('获取验证码成功');
+                  } else {
+                    message.error(result.msg);
+                  }
                 }
-                message.success('获取验证码成功');
               }}
             />
             <Form.Item
@@ -412,10 +413,13 @@ const Login: React.FC = () => {
                       phoneNumber: phone,
                       type: 'login',
                     });
-                    if (!result) {
-                      return;
+                    if (result) {
+                      if (result.code === '200') {
+                        message.success('获取验证码成功');
+                      } else {
+                        message.error(result.msg);
+                      }
                     }
-                    message.success('获取验证码成功');
                   }}
                 />
               </>

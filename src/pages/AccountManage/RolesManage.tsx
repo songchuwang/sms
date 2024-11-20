@@ -130,17 +130,20 @@ const TableList: React.FC = () => {
       title: '角色编号',
       dataIndex: 'roleId',
       valueType: 'textarea',
+      search: false,
     },
     {
       title: '角色名称',
       dataIndex: 'roleName',
       valueType: 'textarea',
+      ellipsis: true,
     },
     {
       title: '相关账号',
       dataIndex: 'accounts',
       valueType: 'textarea',
       search: false,
+      ellipsis: true,
     },
     {
       title: '创建时间',
