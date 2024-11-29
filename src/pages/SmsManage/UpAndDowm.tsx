@@ -1,14 +1,13 @@
-import { addRule, exportFile, getSmsItemList, updateRule } from '@/services/ant-design-pro/api';
+import { addRule, exportFile, getSmsItemList } from '@/services/ant-design-pro/api';
 import { EditOutlined, VerticalAlignBottomOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
-import { ModalForm, PageContainer, ProDescriptions, ProTable } from '@ant-design/pro-components';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { ModalForm, PageContainer, ProTable } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Drawer, Input, message } from 'antd';
+import { Button, Input, message } from 'antd';
+import moment from 'moment';
 
 import React, { useRef, useState } from 'react';
 import { history } from 'umi';
-import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
 
 const { TextArea } = Input;
 
@@ -40,59 +39,17 @@ const handleAdd = async (fields: API.RuleListItem) => {
   }
 };
 
-/**
- * @en-US Update node
- * @zh-CN 更新节点
- *
- * @param fields
- */
-const handleUpdate = async (fields: FormValueType) => {
-  const hide = message.loading('Configuring');
-  try {
-    await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
-    });
-    hide();
-    message.success('Configuration is successful');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Configuration failed, please try again!');
-    return false;
-  }
-};
-
 const TableList: React.FC = () => {
-  /**
-   * @en-US Pop-up window of new window
-   * @zh-CN 新建窗口的弹窗
-   *  */
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
-  /**
-   * @en-US The pop-up window of the distribution update window
-   * @zh-CN 分布更新窗口的弹窗
-   * */
-  const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
-  const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
+  // const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
   const [selectedRowsKeysState, setSelectedRowKeys] = useState<API.RuleListItem[]>([]);
-
   const [downloadFileParams, saveDownloadFileParams] = useState({});
 
   const handleDownLoadFile = () => {
-    console.log('downloadFileParams', downloadFileParams);
-
     exportFile(downLoadUrl, downloadFileParams);
   };
-
-  /**
-   * @en-US International configuration
-   * @zh-CN 国际化配置
-   * */
 
   const columns: ProColumns<API.RuleListItem>[] = [
     {
@@ -126,12 +83,42 @@ const TableList: React.FC = () => {
     },
     {
       title: '发送状态',
-      dataIndex: 'stateDesc',
+      dataIndex: 'state',
+      hideInForm: true,
+      valueEnum: {
+        PROCESSING: {
+          text: '处理中',
+          status: 'Processing',
+        },
+        DELIVRD: {
+          text: '发送成功',
+          status: 'Success',
+        },
+        ERROR: {
+          text: '异常错误',
+          status: 'Error',
+        },
+        TIMEOUT: {
+          text: '超时未接收到',
+          status: 'Default',
+        },
+      },
     },
     {
       title: '发送时间',
       dataIndex: 'sendTime',
-      valueType: 'dateTime',
+      valueType: 'dateRange',
+      search: {
+        transform: (value) => {
+          console.log('transform', value);
+          return { startTime: new Date(value[0]).getTime(), endTime: new Date(value[1]).getTime() };
+        },
+      },
+      render: (_, record) => {
+        console.log('recordrecord', _, record);
+
+        return <span>{moment(record.createTime).format('YYYY-MM-DD HH:mm:ss')}</span>;
+      },
     },
     {
       title: '回复内容',
@@ -153,8 +140,6 @@ const TableList: React.FC = () => {
           key="config"
           onClick={() => {
             console.log('操作', _, record);
-            // handleUpdateModalOpen(true);
-            // setCurrentRow(record);
             goToPageWithParams(record.mobile);
           }}
         >
@@ -244,50 +229,6 @@ const TableList: React.FC = () => {
         />
         {/* <ProFormTextArea placeholder={"请输入回复内容"} width="lg" name="desc" /> */}
       </ModalForm>
-      <UpdateForm
-        onSubmit={async (value) => {
-          const success = await handleUpdate(value);
-          if (success) {
-            handleUpdateModalOpen(false);
-            setCurrentRow(undefined);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-        }}
-        onCancel={() => {
-          handleUpdateModalOpen(false);
-          if (!showDetail) {
-            setCurrentRow(undefined);
-          }
-        }}
-        updateModalOpen={updateModalOpen}
-        values={currentRow || {}}
-      />
-
-      <Drawer
-        width={600}
-        open={showDetail}
-        onClose={() => {
-          setCurrentRow(undefined);
-          setShowDetail(false);
-        }}
-        closable={false}
-      >
-        {currentRow?.name && (
-          <ProDescriptions<API.RuleListItem>
-            column={2}
-            title={currentRow?.name}
-            request={async () => ({
-              data: currentRow || {},
-            })}
-            params={{
-              id: currentRow?.name,
-            }}
-            columns={columns as ProDescriptionsItemProps<API.RuleListItem>[]}
-          />
-        )}
-      </Drawer>
     </PageContainer>
   );
 };

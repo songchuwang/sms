@@ -84,10 +84,14 @@ const Center: React.FC = () => {
 
   const [numberPoolDataSource, setNumberPool] = useState([]); // 号码池号码
 
+  const [filterNumberPool, setFilterNumberPool] = useState([]); // 号码池号码
+
   const rechargeRef = useRef<ActionType>();
   const modalFormRef = useRef<ProFormInstance>();
 
   const [numberPoolModalOpen, setNumberPoolModalOpen] = useState<boolean>(false);
+
+  const [addressBookModalOpen, setAddressBookModalOpen] = useState<boolean>(false);
 
   const [phoneIncreaseModalOpen, handlePhoneIncreaseModalOpen] = useState<boolean>(false);
 
@@ -139,12 +143,10 @@ const Center: React.FC = () => {
           value: item.signId,
         };
       });
-      console.log('result', result);
       setSignList(result);
     });
   }, []);
   const onRadioChange = (e) => {
-    console.log('radio checked', e.target.value);
     showTimePicker(e.target.value === 1);
     setSendType(e.target.value);
   };
@@ -348,26 +350,7 @@ const Center: React.FC = () => {
                         type="link"
                         key="primary"
                         onClick={() => {
-                          // handleModalOpen(true);
-                        }}
-                      >
-                        <FileAddOutlined /> 文件导入
-                      </Button>
-                      <span
-                        style={{
-                          display: 'inline-block',
-                          height: '32px',
-                          lineHeight: '32px',
-                          color: '#ccc',
-                        }}
-                      >
-                        |
-                      </span>
-                      <Button
-                        type="link"
-                        key="primary"
-                        onClick={() => {
-                          // handleModalOpen(true);
+                          setAddressBookModalOpen(true);
                         }}
                       >
                         <BookOutlined /> 通讯录导入
@@ -589,7 +572,14 @@ const Center: React.FC = () => {
           options={false}
           onSubmit={(value) => {
             console.log('value', value);
-            // let _dataSource = numberPoolDataSource.map(item => item.mobile.includes(value.mobile))
+            let _dataSource = numberPoolDataSource.filter((item) =>
+              item.mobile.includes(value.mobile),
+            );
+            console.log('_dataSource', _dataSource);
+            setFilterNumberPool(_dataSource);
+          }}
+          onReset={() => {
+            setFilterNumberPool([]);
           }}
           toolBarRender={() => [
             <Button
@@ -615,16 +605,7 @@ const Center: React.FC = () => {
               全部删除
             </Button>,
           ]}
-          // request={(params) => {
-          //   console.log('paramsparams', params);
-          //   let payload = {
-          //     ...params,
-          //     pageSize: 10
-          //   }
-          //   // return getRechargeList(payload)
-          // }}
-          dataSource={numberPoolDataSource}
-          // alwaysShowAlert={false}
+          dataSource={filterNumberPool.length ? filterNumberPool : numberPoolDataSource}
           columns={numberPoolColumns}
           rowSelection={{
             selectedRowKeys: selectedRowsKeysState,
@@ -636,6 +617,13 @@ const Center: React.FC = () => {
           }}
         />
       </Modal>
+      {/* 通讯录导入 */}
+      <Modal
+        width={1000}
+        title="通讯录导入"
+        open={addressBookModalOpen}
+        onCancel={() => setAddressBookModalOpen(false)}
+      ></Modal>
       <ModalForm
         title={modalTitle}
         width="400px"

@@ -11,7 +11,8 @@ import {
 } from '@ant-design/pro-components';
 import '@umijs/max';
 import type { TabsProps } from 'antd';
-import { Button, Drawer, Input, message, Tabs } from 'antd';
+import { Button, Drawer, message, Tabs } from 'antd';
+import moment from 'moment';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
@@ -91,18 +92,18 @@ const TableList: React.FC = () => {
     },
     {
       title: '日期（天）',
-      sorter: true,
       dataIndex: 'date',
-      valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder={'请输入异常原因！'} />;
-        }
-        return defaultRender(item);
+      valueType: 'dateRange',
+      search: {
+        transform: (value) => {
+          console.log('transform', value);
+          return { startTime: new Date(value[0]).getTime(), endTime: new Date(value[1]).getTime() };
+        },
+      },
+      render: (_, record) => {
+        console.log('recordrecord', _, record);
+
+        return <span>{moment(record.date).format('YYYY-MM-DD')}</span>;
       },
     },
     {
@@ -128,18 +129,21 @@ const TableList: React.FC = () => {
         },
         {
           title: '日期（天）',
-          sorter: true,
           dataIndex: 'date',
-          valueType: 'dateTime',
-          renderFormItem: (item, { defaultRender, ...rest }, form) => {
-            const status = form.getFieldValue('status');
-            if (`${status}` === '0') {
-              return false;
-            }
-            if (`${status}` === '3') {
-              return <Input {...rest} placeholder={'请输入异常原因！'} />;
-            }
-            return defaultRender(item);
+          valueType: 'dateRange',
+          search: {
+            transform: (value) => {
+              console.log('transform', value);
+              return {
+                startTime: new Date(value[0]).getTime(),
+                endTime: new Date(value[1]).getTime(),
+              };
+            },
+          },
+          render: (_, record) => {
+            console.log('recordrecord', _, record);
+
+            return <span>{moment(record.date).format('YYYY-MM-DD')}</span>;
           },
         },
         {
@@ -162,18 +166,21 @@ const TableList: React.FC = () => {
         },
         {
           title: '日期（月份）',
-          sorter: true,
           dataIndex: 'date',
-          valueType: 'dateTime',
-          renderFormItem: (item, { defaultRender, ...rest }, form) => {
-            const status = form.getFieldValue('status');
-            if (`${status}` === '0') {
-              return false;
-            }
-            if (`${status}` === '3') {
-              return <Input {...rest} placeholder={'请输入异常原因！'} />;
-            }
-            return defaultRender(item);
+          valueType: 'dateRange',
+          search: {
+            transform: (value) => {
+              console.log('transform', value);
+              return {
+                startTime: new Date(value[0]).getTime(),
+                endTime: new Date(value[1]).getTime(),
+              };
+            },
+          },
+          render: (_, record) => {
+            console.log('recordrecord', _, record);
+
+            return <span>{moment(record.date).format('YYYY-MM')}</span>;
           },
         },
         {
@@ -196,18 +203,19 @@ const TableList: React.FC = () => {
         },
         {
           title: '日期（年份）',
-          sorter: true,
           dataIndex: 'date',
-          valueType: 'dateTime',
-          renderFormItem: (item, { defaultRender, ...rest }, form) => {
-            const status = form.getFieldValue('status');
-            if (`${status}` === '0') {
-              return false;
-            }
-            if (`${status}` === '3') {
-              return <Input {...rest} placeholder={'请输入异常原因！'} />;
-            }
-            return defaultRender(item);
+          valueType: 'dateRange',
+          search: {
+            transform: (value) => {
+              console.log('transform', value);
+              return {
+                startTime: new Date(value[0]).getTime(),
+                endTime: new Date(value[1]).getTime(),
+              };
+            },
+          },
+          render: (_, record) => {
+            return <span>{moment(record.date).format('YYYY')}</span>;
           },
         },
         {
@@ -245,10 +253,6 @@ const TableList: React.FC = () => {
             pageSize: 10,
             type: statisticsType,
           };
-          // let downloadFileParams = JSON.parse(JSON.stringify(payload))
-          // delete downloadFileParams.current
-          // delete downloadFileParams.pageSize
-          // saveDownloadFileParams(downloadFileParams)
           return getRechargeList(payload);
         }}
         options={false}

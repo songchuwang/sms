@@ -45,6 +45,7 @@ export default [
     icon: 'crown',
     access: 'business:consumption:manager',
     routes: [
+      { path: '/consumption', redirect: '/consumption/consumptionDetails' },
       {
         path: '/consumption/consumptionDetails',
         name: '消费明细',
@@ -70,6 +71,7 @@ export default [
     icon: 'table',
     access: 'business:report:manager',
     routes: [
+      { path: '/statistics', redirect: '/statistics/rechargeStatistics' },
       {
         path: '/statistics/rechargeStatistics',
         name: '充值统计',
@@ -90,6 +92,7 @@ export default [
     icon: 'appstore',
     access: 'business:user:manager',
     routes: [
+      { path: '/account', redirect: '/account/employeeAccount' },
       {
         path: '/account/employeeAccount',
         name: '员工账户',
@@ -110,6 +113,7 @@ export default [
     icon: 'setting',
     access: 'business:sys:seting',
     routes: [
+      { path: '/setting', redirect: '/setting/smsTemplate' },
       {
         path: '/setting/smsTemplate',
         access: 'business:sms:template:manager',

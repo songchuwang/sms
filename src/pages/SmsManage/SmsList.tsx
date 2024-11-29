@@ -1,5 +1,6 @@
 import {
   addRule,
+  getSmsCheckLog,
   getSmsList,
   handleSmsExamine,
   removeRule,
@@ -17,7 +18,8 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Drawer, Input, message } from 'antd';
+import { Button, Drawer, message } from 'antd';
+import moment from 'moment';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
@@ -91,6 +93,8 @@ const handleRemove = async (selectedRows: API.RuleListItem[]) => {
 };
 const TableList: React.FC = () => {
   const actionDesRef = useRef<ProDescriptionsActionType>();
+
+  const drawerRef = useRef();
   /**
    * @en-US Pop-up window of new window
    * @zh-CN 新建窗口的弹窗
@@ -118,11 +122,6 @@ const TableList: React.FC = () => {
    * */
 
   const columns: ProColumns<API.RuleListItem>[] = [
-    // {
-    //   title: '任务编号',
-    //   dataIndex: 'name',
-    //   search: false,
-    // },
     {
       title: '序号',
       dataIndex: 'index',
@@ -185,18 +184,16 @@ const TableList: React.FC = () => {
     },
     {
       title: '创建时间',
-      sorter: true,
       dataIndex: 'createTime',
-      valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder={'请输入异常原因！'} />;
-        }
-        return defaultRender(item);
+      valueType: 'dateRange',
+      search: {
+        transform: (value) => {
+          console.log('transform', value);
+          return { startTime: new Date(value[0]).getTime(), endTime: new Date(value[1]).getTime() };
+        },
+      },
+      render: (_, record) => {
+        return <span>{moment(record.createTime).format('YYYY-MM-DD HH:mm:ss')}</span>;
       },
     },
     {
@@ -239,39 +236,40 @@ const TableList: React.FC = () => {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      render: (_, record) => [
-        <a
-          key="config"
-          onClick={() => {
-            handleExamineModalOpen(true);
-            setCurrentRow(record);
-          }}
-        >
-          审核
-        </a>,
-        <a
-          onClick={() => {
-            // handleNotesModalOpen(true);
-            setShowDetail(true);
-            setCurrentRow(record);
-          }}
-          key="subscribeAlert"
-        >
-          备注
-        </a>,
-        // render: (dom, entity) => {
-        //   return (
-        //     <a
-        //       onClick={() => {
-        //         setCurrentRow(entity);
-        //         setShowDetail(true);
-        //       }}
-        //     >
-        //       {dom}
-        //     </a>
-        //   );
-        // },
-      ],
+      render: (_, record) => {
+        let option = [];
+        if (record.status === 0) {
+          option.push(
+            <a
+              key="config"
+              onClick={() => {
+                handleExamineModalOpen(true);
+                setCurrentRow(record);
+              }}
+            >
+              审核
+            </a>,
+          );
+        } else {
+          option.push(
+            <a
+              onClick={() => {
+                setCurrentRow(record);
+                setTimeout(() => {
+                  setShowDetail(true);
+                  if (actionDesRef.current) {
+                    actionDesRef.current.reload();
+                  }
+                }, 200);
+              }}
+              key="bz"
+            >
+              备注
+            </a>,
+          );
+        }
+        return option;
+      },
     },
   ];
   return (
@@ -444,16 +442,6 @@ const TableList: React.FC = () => {
             },
           ]}
         />
-        {/* <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '规则名称为必填项',
-            },
-          ]}
-          width="md"
-          name="name"
-        /> */}
         <ProFormTextArea
           width="md"
           name="desc"
@@ -490,6 +478,7 @@ const TableList: React.FC = () => {
       <Drawer
         width={600}
         open={showDetail}
+        actionRef={drawerRef}
         onClose={() => {
           setCurrentRow(undefined);
           setShowDetail(false);
@@ -498,54 +487,29 @@ const TableList: React.FC = () => {
       >
         <ProDescriptions
           actionRef={actionDesRef}
-          title="高级定义列表 request"
+          title="备注"
           column={1}
           request={async () => {
+            let payload = {
+              smsId: currentRow.smsId,
+            };
+            let response = await getSmsCheckLog(payload);
+            const data = response.data;
             return Promise.resolve({
               success: true,
-              data: {
-                id: '这是一段文本2',
-                date: '20200730',
-                money: '12121',
-                reason: '原因',
-                reason2: '原因2',
-              },
+              data,
             });
           }}
-          // extra={<Button type="link">修改</Button>}
         >
-          <ProDescriptions.Item dataIndex="id" label="审核人" />
-          <ProDescriptions.Item dataIndex="date" label="日期" valueType="date" />
-          <ProDescriptions.Item dataIndex="reason" label="审核未通过原因" />
-          <ProDescriptions.Item dataIndex="date" label="短信发送时间" />
-          <ProDescriptions.Item dataIndex="reason2" label="发送失败原因" />
-          <ProDescriptions.Item label="money" dataIndex="money" valueType="money" />
-          {/* <ProDescriptions.Item label="文本" valueType="option">
-            <Button
-              type="primary"
-              onClick={() => {
-                actionRef.current?.reload();
-              }}
-              key="reload"
-            >
-              刷新
-            </Button>
-            <Button key="rest">重置</Button>
-          </ProDescriptions.Item> */}
+          <ProDescriptions.Item dataIndex="createBy" label="审核人" />
+          <ProDescriptions.Item dataIndex="createTime" label="审核时间" valueType="dateTime" />
+          {currentRow?.status === 3 ? (
+            <ProDescriptions.Item dataIndex="remark" label="审核未通过原因" />
+          ) : null}
+          {currentRow?.status === 2 ? (
+            <ProDescriptions.Item dataIndex="sendTime" label="短信发送时间" valueType="dateTime" />
+          ) : null}
         </ProDescriptions>
-        {/* {currentRow?.name && (
-          <ProDescriptions<API.RuleListItem>
-            column={2}
-            title={currentRow?.name}
-            request={async () => ({
-              data: currentRow || {},
-            })}
-            params={{
-              id: currentRow?.name,
-            }}
-            columns={columns as ProDescriptionsItemProps<API.RuleListItem>[]}
-          />
-        )} */}
       </Drawer>
     </PageContainer>
   );

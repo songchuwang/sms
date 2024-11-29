@@ -33,12 +33,6 @@ const beforeUpload = (file: FileType) => {
 };
 
 const BasicForm: FC<Record<string, any>> = () => {
-  // const { run } = useRequest(fakeSubmitForm, {
-  //   manual: true,
-  //   onSuccess: () => {
-  //     message.success('提交成功');
-  //   },
-  // });
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string>();
   const [businessLicense, setBusinessLicense] = useState<string>('');
@@ -48,7 +42,6 @@ const BasicForm: FC<Record<string, any>> = () => {
 
   useEffect(() => {
     getBusinessInfo().then((res) => {
-      console.log('[getBusinessInfo]', res);
       const result = res.data;
       setBusinessInfo(result);
       setImageUrl(result.businessLicense);
@@ -57,7 +50,6 @@ const BasicForm: FC<Record<string, any>> = () => {
 
   const handleChange: UploadProps['onChange'] = (info) => {
     console.log('handleChange', info);
-
     if (info.file.status === 'uploading') {
       setLoading(true);
       return;
@@ -76,18 +68,15 @@ const BasicForm: FC<Record<string, any>> = () => {
     </button>
   );
   const onFinish = async (values: Record<string, any>) => {
-    console.log('onFinish', values);
     const payload = {
       ...values,
       province: values?.allArea[0],
       city: values?.allArea[1],
       area: values?.allArea[2],
-      businessLicense: businessLicense,
+      businessLicense: businessLicense || imageUrl,
       powerOfAttorney: powerOfAttorney,
     };
-    console.log('onFinish222', payload);
     const result = await businessSubmit(payload);
-    console.log('result123', result);
     if (result.code === '200') {
       message.success('提交认证成功，请耐心等待审核结果！');
       setFormDisabled(true);
@@ -95,34 +84,16 @@ const BasicForm: FC<Record<string, any>> = () => {
       message.error(result.msg);
     }
   };
-  const normFile = (e) => {
-    console.log('normFile', e);
-
-    if (Array.isArray(e)) {
-      return e;
-    }
-    return e?.fileList;
-  };
-  const normFile2 = (e) => {
-    console.log('Upload event:', e);
-    if (Array.isArray(e)) {
-      return e;
-    }
-    return e?.fileList;
-  };
   const fileProps: UploadProps = {
     name: 'file',
     action: '/common/dgy/v1/common/file/upload',
     maxCount: 1,
-    // headers: {
-    //   authorization: 'authorization-text',
-    // },
     onChange(info) {
       if (info.file.status !== 'uploading') {
         console.log(info.file, info.fileList);
       }
       if (info.file.status === 'done') {
-        message.success(`${info.file.name} file uploaded successfully`);
+        message.success(`${info.file.name} 上传成功`);
       } else if (info.file.status === 'error') {
         message.error(`${info.file.name} file upload failed.`);
       }
@@ -131,7 +102,6 @@ const BasicForm: FC<Record<string, any>> = () => {
   function customRequest(option) {
     const formData = new FormData();
     formData.append('file', option.file);
-
     // 这里替换为你的上传接口
     fetch('/common/dgy/v1/common/file/upload', {
       method: 'POST',
@@ -154,7 +124,6 @@ const BasicForm: FC<Record<string, any>> = () => {
   const customFileRequest = (option) => {
     const formData = new FormData();
     formData.append('file', option.file);
-    // 这里替换为你的上传接口
     fetch('/common/dgy/v1/common/file/upload', {
       method: 'POST',
       body: formData,
@@ -162,7 +131,6 @@ const BasicForm: FC<Record<string, any>> = () => {
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          console.log('customFileRequest', data);
           setPowerOfAttorney(data.data);
           option.onSuccess(data.data, option.file);
         } else {
@@ -193,9 +161,19 @@ const BasicForm: FC<Record<string, any>> = () => {
         <Result
           status="error"
           title="企业认证未通过，请重新认证"
-          subTitle={`企业认证未通过，请重新认证`}
+          // subTitle={`企业认证未通过，请重新认证`}
           extra={[
-            <Button type="primary" key="console">
+            <Button
+              type="primary"
+              key="console"
+              onClick={() => {
+                setBusinessInfo({
+                  ...businessInfo,
+                  status: 0,
+                  reload: false,
+                });
+              }}
+            >
               前往认证
             </Button>,
           ]}
@@ -218,17 +196,19 @@ const BasicForm: FC<Record<string, any>> = () => {
             // initialValues={businessInfo}
             request={async () => {
               const response = await getBusinessInfo();
-              let data = response.data;
-              setBusinessInfo(response.data);
-              if (data.status !== 0) {
+              // let data = response.data;
+              if (businessInfo.reload !== false) {
+                setBusinessInfo(response.data);
+              }
+              if (businessInfo.status !== 0) {
                 setFormDisabled(true);
               } else {
                 setFormDisabled(false);
               }
               return {
-                name: data.name,
-                allArea: [data.province, data.city, data.area],
-                address: data.address,
+                name: businessInfo.name,
+                allArea: [businessInfo.province, businessInfo.city, businessInfo.area],
+                address: businessInfo.address,
               };
             }}
             onFinish={onFinish}
@@ -272,14 +252,19 @@ const BasicForm: FC<Record<string, any>> = () => {
 
             <Form.Item
               label="上传营业执照"
+              name="avatar"
+              required
               rules={[
+                // { required: true, message: '请上传营业执照' },
                 {
-                  required: true,
-                  message: '上传营业执照',
+                  validator: () => {
+                    if (imageUrl) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject('请上传营业执照');
+                  },
                 },
               ]}
-              valuePropName="fileList"
-              getValueFromEvent={normFile}
             >
               <Upload
                 name="avatar"
@@ -291,7 +276,11 @@ const BasicForm: FC<Record<string, any>> = () => {
                 onChange={handleChange}
               >
                 {imageUrl ? (
-                  <img src={imageUrl} alt="avatar" style={{ width: '100%' }} />
+                  <img
+                    src={imageUrl}
+                    alt="avatar"
+                    style={{ width: '100%', maxWidth: 100, height: 'auto', maxHeight: 100 }}
+                  />
                 ) : (
                   uploadButton
                 )}
@@ -300,15 +289,31 @@ const BasicForm: FC<Record<string, any>> = () => {
             <Form.Item
               name="upload"
               label="授权书"
-              valuePropName="fileList"
-              getValueFromEvent={normFile2}
+              rules={[
+                {
+                  required: true,
+                  message: '请上传授权书',
+                },
+              ]}
+              // valuePropName="fileList"
+              // getValueFromEvent={normFile2}
               style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}
             >
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
                 <Upload {...fileProps} customRequest={customFileRequest}>
                   <Button icon={<UploadOutlined />}>点击上传</Button>
                 </Upload>
-                <Button type="link">下载授权书</Button>
+                <Button
+                  type="link"
+                  onClick={() =>
+                    window.open(
+                      'https://smscompany.bdcjx.com/%E7%9F%AD%E4%BF%A1%E5%B9%B3%E5%8F%B0%E6%9C%8D%E5%8A%A1%E7%94%B3%E8%AF%B7%E6%8E%88%E6%9D%83%E4%B9%A6.docx',
+                      '_blank',
+                    )
+                  }
+                >
+                  下载授权书
+                </Button>
               </div>
             </Form.Item>
           </ProForm>

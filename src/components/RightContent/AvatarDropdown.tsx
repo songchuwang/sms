@@ -18,7 +18,7 @@ export const AvatarName = () => {
   const { initialState } = useModel('@@initialState');
 
   const { currentUser } = initialState || {};
-  return <span className="anticon">{currentUser?.realName || currentUser?.name}</span>;
+  return <span className="anticon">{currentUser?.account || currentUser?.name}</span>;
 };
 
 const useStyles = createStyles(({ token }) => {

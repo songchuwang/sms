@@ -4,9 +4,11 @@ import type { ActionType, ProDescriptionsItemProps } from '@ant-design/pro-compo
 import { PageContainer, ProDescriptions, ProTable } from '@ant-design/pro-components';
 import '@umijs/max';
 import { Button, Drawer, message } from 'antd';
+import moment from 'moment';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
+
 const downLoadUrl = '/api/v1/admin/business/consumption/export';
 
 /**
@@ -72,13 +74,20 @@ const TableList: React.FC = () => {
     },
     {
       title: '发送时间',
-      sorter: true,
       dataIndex: 'sendTime',
-      valueType: 'dateTime',
+      valueType: 'dateRange',
+      search: {
+        transform: (value) => {
+          console.log('transform', value);
+          return { startTime: new Date(value[0]).getTime(), endTime: new Date(value[1]).getTime() };
+        },
+      },
+      render: (_, record) => {
+        return <span>{moment(record.sendTime).format('YYYY-MM-DD HH:mm:ss')}</span>;
+      },
     },
     {
       title: '发送人',
-      sorter: true,
       dataIndex: 'createBy',
     },
   ];

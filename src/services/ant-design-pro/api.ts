@@ -456,6 +456,15 @@ export async function getBusinessCount() {
   });
 }
 
+export async function getSmsCheckLog(options?: { [key: string]: any }) {
+  return request<API.RuleList>('/api/v1/admin/business/sms/check/log', {
+    method: 'GET',
+    params: {
+      ...options,
+    },
+  });
+}
+
 export async function getConsumptionLog(options?: { [key: string]: any }) {
   console.log('getRoleList', options);
   return request<API.RuleList>('/api/v1/admin/home/business/statistics/consumption/log', {

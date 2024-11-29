@@ -14,9 +14,11 @@ import {
 } from '@ant-design/pro-components';
 import '@umijs/max';
 import { Button, Drawer, message } from 'antd';
+import moment from 'moment';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
+
 const downLoadUrl = '/api/v1/admin/business/recharge/log/export';
 
 /**
@@ -97,9 +99,19 @@ const TableList: React.FC = () => {
     },
     {
       title: '充值时间',
-      sorter: true,
       dataIndex: 'date',
-      valueType: 'dateTime',
+      valueType: 'dateRange',
+      search: {
+        transform: (value) => {
+          console.log('transform', value);
+          return { startTime: new Date(value[0]).getTime(), endTime: new Date(value[1]).getTime() };
+        },
+      },
+      render: (_, record) => {
+        console.log('recordrecord', _, record);
+
+        return <span>{moment(record.date).format('YYYY-MM-DD HH:mm:ss')}</span>;
+      },
     },
   ];
   return (

@@ -130,7 +130,6 @@ const TableList: React.FC = () => {
     },
     {
       title: '创建时间',
-      sorter: true,
       dataIndex: 'createTime',
       valueType: 'dateTime',
       renderFormItem: (item, { defaultRender, ...rest }, form) => {
@@ -305,7 +304,7 @@ const TableList: React.FC = () => {
           rules={[
             {
               required: true,
-              message: '规则名称为必填项',
+              message: '请输入模板名称',
             },
           ]}
           label="模板名称"
@@ -316,7 +315,7 @@ const TableList: React.FC = () => {
           rules={[
             {
               required: true,
-              message: '规则名称为必填项',
+              message: '请输入模板内容',
             },
           ]}
           label="模板内容"

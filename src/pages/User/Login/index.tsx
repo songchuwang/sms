@@ -127,26 +127,22 @@ const Login: React.FC = () => {
       if (loginType === 'account') {
         msg = await login({
           ...values,
-          // type,
         });
       } else if (loginType === 'mobile') {
         msg = await mobileLogin({
           ...values,
-          // type,
         });
       }
-      console.log('【msg】', msg);
-
       if (msg.code === '200') {
         localStorage.setItem('token', JSON.stringify(msg?.data?.token));
         await fetchUserInfo(msg.data);
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
         return;
-      } else {
-        // message.error(msg.msg);
       }
-      console.log(msg);
+      // else {
+      //   message.error(msg.msg);
+      // }
       // 如果失败去设置用户错误信息
       setUserLoginState(msg);
     } catch (error) {

@@ -5,7 +5,7 @@ import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { SettingDrawer } from '@ant-design/pro-components';
 import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link } from '@umijs/max';
-import { Button } from 'antd';
+import { Button, message } from 'antd';
 import defaultSettings from '../config/defaultSettings';
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -61,7 +61,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       },
     },
     waterMarkProps: {
-      content: initialState?.currentUser?.realName,
+      content: initialState?.currentUser?.account,
     },
     footerRender: () => <Footer />,
     onPageChange: () => {
@@ -111,20 +111,14 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
         width: '331px',
       },
     ],
-    // links: isDev
-    //   ? [
-    //       <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
-    //         <LinkOutlined />
-    //         <span>OpenAPI 文档</span>
-    //       </Link>,
-    //     ]
-    //   : [],
     menuHeaderRender: undefined,
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,
     // 增加一个 loading 的状态
     childrenRender: (children) => {
       // if (initialState?.loading) return <PageLoading />;
+      console.log('initialState123', initialState);
+
       return (
         <>
           {children}
@@ -169,9 +163,26 @@ const authHeaderInterceptor = async (url: string, options: RequestConfig) => {
   };
 };
 
+const demoResponseInterceptors = (response: Response) => {
+  if (response && response.data) {
+    if (response.data.code !== '200') {
+      if (response.data.code === '403') {
+        history.push(loginPath);
+      } else if (response.data.code === '5403') {
+        history.push('/setting/enterpriseCertification');
+      } else {
+        message.error(response.data.msg);
+      }
+    }
+  }
+  return response;
+};
+
 export const request: RequestConfig = {
   // 新增自动添加AccessToken的请求前拦截器
   requestInterceptors: [authHeaderInterceptor],
+  // 请求后拦截
+  responseInterceptors: [demoResponseInterceptors],
 };
 // export const request = {
 //   ...errorConfig,

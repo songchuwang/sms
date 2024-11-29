@@ -9,7 +9,6 @@ import {
   handleContactRemove,
   handleContactUpdate,
   handleGroupUpdate,
-  updateRule,
 } from '@/services/ant-design-pro/api';
 import {
   CloudDownloadOutlined,
@@ -18,17 +17,11 @@ import {
   PlusOutlined,
   RetweetOutlined,
 } from '@ant-design/icons';
-import type {
-  ActionType,
-  ProColumns,
-  ProDescriptionsActionType,
-  ProFormInstance,
-} from '@ant-design/pro-components';
+import type { ActionType, ProColumns, ProFormInstance } from '@ant-design/pro-components';
 import {
   GridContent,
   ModalForm,
   PageContainer,
-  ProDescriptions,
   ProFormRadio,
   ProFormSelect,
   ProFormText,
@@ -36,22 +29,18 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Card, Col, Drawer, Menu, message, Popconfirm, Row, Space } from 'antd';
+import { Button, Card, Col, Menu, message, Popconfirm, Row, Space } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useEffect, useRef, useState } from 'react';
-import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
 const downLoadUrl = '/api/v1/admin/business/address/book/export';
 
 const useStyles = createStyles(({}) => {
   return {
-    menuBox: {},
     groupBox: {
       display: 'flex',
       flex: 1,
       flexDirection: 'column',
       '.ant-menu': {
-        // background:'red',
         'border-inline-end': 'none !important',
       },
     },
@@ -91,40 +80,7 @@ const handleAdd = async (fields: API.RuleListItem) => {
   }
 };
 
-/**
- * @en-US Update node
- * @zh-CN 更新节点
- *
- * @param fields
- */
-const handleUpdate = async (fields: FormValueType) => {
-  const hide = message.loading('Configuring');
-  try {
-    await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
-    });
-    hide();
-    message.success('Configuration is successful');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Configuration failed, please try again!');
-    return false;
-  }
-};
-
 const TableList: React.FC = (props) => {
-  console.log('TableList', props);
-
-  const actionDesRef = useRef<ProDescriptionsActionType>();
-  /**
-   * @en-US Pop-up window of new window
-   * @zh-CN 新建窗口的弹窗
-   *  */
-  // const [createModalOpen, handleModalOpen] = useState<boolean>(false);
-
   const [examineModalOpen, handleExamineModalOpen] = useState<boolean>(false);
 
   const [notesModalOpen, handleNotesModalOpen] = useState<boolean>(false);
@@ -132,8 +88,6 @@ const TableList: React.FC = (props) => {
    * @en-US The pop-up window of the distribution update window
    * @zh-CN 分布更新窗口的弹窗
    * */
-  const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
-  const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
@@ -150,12 +104,10 @@ const TableList: React.FC = (props) => {
   const [downloadFileParams, saveDownloadFileParams] = useState({});
 
   useEffect(() => {
-    console.log('groupProps', props, groupData);
     setGroupData(props.groupData);
   }, [props]);
 
   const handleDownLoadFile = () => {
-    console.log('downloadFileParams', downloadFileParams);
     exportFile(downLoadUrl, downloadFileParams);
   };
 
@@ -212,10 +164,12 @@ const TableList: React.FC = (props) => {
           onClick={() => {
             handleContactModalOpen(true);
             setContactTitle('编辑联系人');
-            setCurrentRow(record);
-            if (contactFormRef.current) {
-              contactFormRef.current.setFieldsValue(record);
-            }
+            setTimeout(() => {
+              if (contactFormRef.current) {
+                contactFormRef.current.setFieldsValue(record);
+                setCurrentRow(record);
+              }
+            });
           }}
         >
           编辑
@@ -229,6 +183,7 @@ const TableList: React.FC = (props) => {
               idList: [record.id],
             };
             await handleContactRemove(payload);
+            props.updateGroup();
             if (actionRef.current) {
               actionRef.current.reload();
             }
@@ -258,8 +213,9 @@ const TableList: React.FC = (props) => {
             key="primary"
             onClick={() => {
               handleContactModalOpen(true);
+              setCurrentRow(undefined);
               if (contactFormRef.current) {
-                // setModalTitle('新建账户');
+                setContactTitle('添加联系人');
                 contactFormRef.current.resetFields();
               }
             }}
@@ -326,12 +282,9 @@ const TableList: React.FC = (props) => {
           groupId: props.groupProps.groupId,
         }}
         request={(params) => {
-          console.log('paramsparams', params);
           let payload = {
             ...params,
             pageNum: params.current,
-            // pageSize: 10,
-            // type: statisticsType,
           };
           delete payload.current;
           let downloadFileParams = JSON.parse(JSON.stringify(params));
@@ -340,7 +293,6 @@ const TableList: React.FC = (props) => {
           saveDownloadFileParams(downloadFileParams);
           return getGrouptList(payload);
         }}
-        // request={getGrouptList}
         columns={columns}
         rowSelection={{
           selectedRowKeys: selectedRowsKeysState,
@@ -371,24 +323,24 @@ const TableList: React.FC = (props) => {
           },
         }}
         onFinish={async (value) => {
-          console.log('handleAccountEdit', value);
-          // let payload = {
-          //   ...value,
-          //   roleIdList: [value.roleIdList],
-          // };
-          // delete payload.method;
+          // console.log('handleAccountEdit', value);
           let result = {};
           if (contactTitle === '编辑联系人') {
             result = await handleContactUpdate({
               ...value,
+              groupId: value._groupId,
               id: currentRow?.id,
             });
           } else {
-            result = await handleContactAdd(value as API.RuleListItem);
+            let payload = {
+              ...value,
+              groupId: value._groupId,
+            };
+            result = await handleContactAdd(payload as API.RuleListItem);
           }
           if (result.code === '200') {
             message.success(contactTitle === '编辑联系人' ? '修改成功' : '添加成功');
-            props.updateGroup();
+            props.updateGroup(props.groupProps);
             handleContactModalOpen(false);
             if (contactFormRef.current) {
               contactFormRef.current.resetFields();
@@ -417,6 +369,10 @@ const TableList: React.FC = (props) => {
             {
               required: true,
               message: '手机号为必填项',
+            },
+            {
+              pattern: /^1\d{10}$/,
+              message: '不合法的手机号！',
             },
           ]}
           label="手机号"
@@ -467,10 +423,11 @@ const TableList: React.FC = (props) => {
               message: '请选择通讯组',
             },
           ]}
-          name="groupId"
+          name="_groupId"
           width="md"
           label="通讯组"
           valueEnum={groupData}
+          value={currentRow?.groupName}
         />
       </ModalForm>
       {/* 移动分组 */}
@@ -498,46 +455,22 @@ const TableList: React.FC = (props) => {
           let result = {};
           let payload = {
             ...value,
+            groupId: value._groupId,
             idList: selectedRowsKeysState,
           };
           result = await handleContactMove(payload);
           if (result.code === '200') {
             message.success('移动成功');
-            props.updateGroup();
+            props.updateGroup(props.groupProps);
             handleMoveModalOpen(false);
             setSelectedRowKeys([]);
             setSelectedRows([]);
-            // if (moveFormRef.current) {
-            //   moveFormRef.current.resetFields();
-            // }
             if (actionRef.current) {
               actionRef.current.reload();
             }
           } else {
             message.error(result.msg);
           }
-
-          // if (contactTitle === '编辑联系人') {
-          //   result = await handleContactUpdate({
-          //     ...value,
-          //     id: currentRow?.id,
-          //   });
-          // } else {
-          //   result = await handleContactAdd(value as API.RuleListItem);
-          // }
-          // if (result.code === '200') {
-          //   message.success(contactTitle === '编辑联系人' ? '修改成功' : '添加成功');
-          //   props.updateGroup()
-          //   handleContactModalOpen(false);
-          //   if (contactFormRef.current) {
-          //     contactFormRef.current.resetFields();
-          //   }
-          //   if (actionRef.current) {
-          //     actionRef.current.reload();
-          //   }
-          // } else {
-          //   message.error(result.msg);
-          // }
         }}
       >
         <ProFormSelect
@@ -547,10 +480,11 @@ const TableList: React.FC = (props) => {
               message: '请选择通讯组',
             },
           ]}
-          name="groupId"
+          name="_groupId"
           width="md"
           label="通讯组"
           valueEnum={groupData}
+          value={currentRow?.groupName}
         />
         <span>当前已选择{selectedRowsKeysState.length}人</span>
       </ModalForm>
@@ -656,87 +590,6 @@ const TableList: React.FC = (props) => {
           ]}
         />
       </ModalForm>
-      <UpdateForm
-        onSubmit={async (value) => {
-          const success = await handleUpdate(value);
-          if (success) {
-            handleUpdateModalOpen(false);
-            setCurrentRow(undefined);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-        }}
-        onCancel={() => {
-          handleUpdateModalOpen(false);
-          if (!showDetail) {
-            setCurrentRow(undefined);
-          }
-        }}
-        updateModalOpen={updateModalOpen}
-        values={currentRow || {}}
-      />
-
-      <Drawer
-        width={600}
-        open={showDetail}
-        onClose={() => {
-          setCurrentRow(undefined);
-          setShowDetail(false);
-        }}
-        closable={false}
-      >
-        <ProDescriptions
-          actionRef={actionDesRef}
-          title="高级定义列表 request"
-          column={1}
-          request={async () => {
-            return Promise.resolve({
-              success: true,
-              data: {
-                id: '这是一段文本2',
-                date: '20200730',
-                money: '12121',
-                reason: '原因',
-                reason2: '原因2',
-              },
-            });
-          }}
-          // extra={<Button type="link">修改</Button>}
-        >
-          <ProDescriptions.Item dataIndex="id" label="审核人" />
-          <ProDescriptions.Item dataIndex="date" label="日期" valueType="date" />
-          <ProDescriptions.Item dataIndex="reason" label="审核未通过原因" />
-          <ProDescriptions.Item dataIndex="date" label="短信发送时间" />
-          <ProDescriptions.Item dataIndex="reason2" label="发送失败原因" />
-          <ProDescriptions.Item label="money" dataIndex="money" valueType="money" />
-          {/* <ProDescriptions.Item label="文本" valueType="option">
-            <Button
-              type="primary"
-              onClick={() => {
-                actionRef.current?.reload();
-              }}
-              key="reload"
-            >
-              刷新
-            </Button>
-            <Button key="rest">重置</Button>
-          </ProDescriptions.Item> */}
-        </ProDescriptions>
-        {/* {currentRow?.name && (
-          <ProDescriptions<API.RuleListItem>
-            column={2}
-            title={currentRow?.name}
-            request={async () => ({
-              data: currentRow || {},
-            })}
-            params={{
-              id: currentRow?.name,
-            }}
-            columns={columns as ProDescriptionsItemProps<API.RuleListItem>[]}
-          />
-        )} */}
-      </Drawer>
     </PageContainer>
   );
 };
@@ -757,16 +610,17 @@ const Center: React.FC = () => {
   // 新建分组ref
   const createGroupRef = useRef<ProFormInstance>();
 
-  const getBookGrouptListFn = () => {
+  const getBookGrouptListFn = (params = {}) => {
     getBookGrouptList().then((res) => {
-      console.log('getBookGrouptList', res);
       let data = res.data || [];
-
       let valueEnum = {};
       data.map((item) => {
         valueEnum[item.groupId] = item.groupName;
         return item;
       });
+      if (res.data && res.data.length) {
+        updatePage({ groupId: params?.groupId ? params?.groupId : res.data[0].groupId });
+      }
       setGroupData(valueEnum);
 
       let menuChildren = data.map((item, index) => {
@@ -795,11 +649,12 @@ const Center: React.FC = () => {
                   handleCreateModalOpen(true);
                   handleUpdateModalTitle('编辑通讯录分组');
                   setCurrentGroupItem(item);
-                  if (createGroupRef.current) {
-                    createGroupRef.current.setFieldsValue({
-                      name: item.groupName,
-                    });
-                  }
+                  console.log('_setCurrentGroupItem_', item);
+                  setTimeout(() => {
+                    if (createGroupRef.current) {
+                      createGroupRef.current.setFieldsValue(item);
+                    }
+                  }, 100);
                 }}
                 style={{ color: '#1890ff' }}
               />
@@ -840,34 +695,22 @@ const Center: React.FC = () => {
                 key="primary"
                 onClick={() => {
                   handleCreateModalOpen(true);
+                  if (createGroupRef.current) {
+                    createGroupRef.current.resetFields();
+                  }
                   handleUpdateModalTitle('新建通讯录分组');
                 }}
               >
                 <PlusOutlined /> 新建分组
               </Button>
               <Menu
-                // onClick={onClick}
-                // style={{
-                //   width: 256,
-                // }}
-                defaultSelectedKeys={['1']}
+                defaultSelectedKeys={['0']}
                 defaultOpenKeys={['sub1']}
                 mode="inline"
                 items={menuList}
+                style={{ maxHeight: '750px', overflowY: 'auto' }}
               />
             </div>
-
-            {/* {!loading && currentUser && (
-              <div>
-                <Divider dashed />
-                <Divider
-                  style={{
-                    marginTop: 16,
-                  }}
-                  dashed
-                />
-              </div>
-            )} */}
           </Card>
         </Col>
         <Col lg={20} md={24}>
@@ -898,7 +741,7 @@ const Center: React.FC = () => {
           console.log('groupName', value);
           let result = {};
           let payload = {
-            name: value.name,
+            name: value.groupName,
           };
           if (modalTitle === '编辑通讯录分组') {
             result = await handleGroupUpdate({
@@ -930,7 +773,7 @@ const Center: React.FC = () => {
             },
           ]}
           width="md"
-          name="name"
+          name="groupName"
           label="分组名称"
         />
       </ModalForm>

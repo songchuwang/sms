@@ -134,16 +134,13 @@ const InfoCard: React.FC<{
       {cardType === 1 ? (
         <div>
           <div>
-            <img src="" alt="" />
             <div
               style={{
                 display: 'flex',
                 flexDirection: 'column',
               }}
             >
-              <span style={{ color: '#3A4663', fontSize: 16 }}>
-                {currentUser?.realName} | 企业编码：{currentUser?.businessId}
-              </span>
+              <span style={{ color: '#3A4663', fontSize: 16 }}>{currentUser?.account}</span>
               <span style={{ color: '#3A4663', fontSize: 16, marginTop: 5, marginBottom: 5 }}>
                 {currentUser?.name}
               </span>

@@ -1,13 +1,18 @@
 import { PageContainer } from '@ant-design/pro-components';
+import { useModel } from '@umijs/max';
 import { Card, Descriptions, Divider } from 'antd';
 import type { FC } from 'react';
 const Basic: FC = () => {
+  const initialState = useModel('@@initialState');
+  const { currentUser } = initialState?.initialState || {};
+
   return (
     <PageContainer>
       <Card bordered={false}>
         <h3>
-          企业账户：账户余额<span style={{ color: '#1890ff' }}>2000.00</span>元，短信剩余量：
-          <span style={{ color: '#1890ff' }}>8888</span>条。
+          企业账户：账户余额<span style={{ color: '#1890ff' }}>{currentUser?.balance}</span>
+          元，短信剩余量：
+          <span style={{ color: '#1890ff' }}>{currentUser?.leftCount}</span>条。
         </h3>
         <Descriptions
           title="第一步：请选择微信或支付宝扫码付款"
