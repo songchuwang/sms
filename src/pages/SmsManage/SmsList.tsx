@@ -3,12 +3,10 @@ import {
   getSmsCheckLog,
   getSmsList,
   handleSmsExamine,
-  removeRule,
   updateRule,
 } from '@/services/ant-design-pro/api';
 import type { ActionType, ProColumns, ProDescriptionsActionType } from '@ant-design/pro-components';
 import {
-  FooterToolbar,
   ModalForm,
   PageContainer,
   ProDescriptions,
@@ -18,7 +16,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Drawer, message } from 'antd';
+import { Drawer, message } from 'antd';
 import moment from 'moment';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
@@ -69,57 +67,23 @@ const handleUpdate = async (fields: FormValueType) => {
   }
 };
 
-/**
- *  Delete node
- * @zh-CN 删除节点
- *
- * @param selectedRows
- */
-const handleRemove = async (selectedRows: API.RuleListItem[]) => {
-  const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
-  try {
-    await removeRule({
-      key: selectedRows.map((row) => row.key),
-    });
-    hide();
-    message.success('Deleted successfully and will refresh soon');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Delete failed, please try again');
-    return false;
-  }
-};
 const TableList: React.FC = () => {
   const actionDesRef = useRef<ProDescriptionsActionType>();
 
   const drawerRef = useRef();
-  /**
-   * @en-US Pop-up window of new window
-   * @zh-CN 新建窗口的弹窗
-   *  */
+
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
 
   const [examineModalOpen, handleExamineModalOpen] = useState<boolean>(false);
 
   const [notesModalOpen, handleNotesModalOpen] = useState<boolean>(false);
-  /**
-   * @en-US The pop-up window of the distribution update window
-   * @zh-CN 分布更新窗口的弹窗
-   * */
+
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const [showRejectTextArea, setShowRejectTextArea] = useState<boolean>(false);
 
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
-
-  /**
-   * @en-US International configuration
-   * @zh-CN 国际化配置
-   * */
 
   const columns: ProColumns<API.RuleListItem>[] = [
     {
@@ -135,6 +99,7 @@ const TableList: React.FC = () => {
       title: '发送方式',
       dataIndex: 'sendType',
       hideInForm: true,
+      search: false,
       valueEnum: {
         0: {
           text: '即时发送',
@@ -296,37 +261,6 @@ const TableList: React.FC = () => {
         columns={columns}
         rowSelection={false}
       />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              已选择{' '}
-              <a
-                style={{
-                  fontWeight: 600,
-                }}
-              >
-                {selectedRowsState.length}
-              </a>{' '}
-              项 &nbsp;&nbsp;
-              <span>
-                服务调用次数总计 {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)} 万
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            批量删除
-          </Button>
-          <Button type="primary">批量审批</Button>
-        </FooterToolbar>
-      )}
       <ModalForm
         title={'新建规则'}
         width="400px"

@@ -17,7 +17,13 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 
-import { getSignList, sendSms } from '@/services/ant-design-pro/api';
+import {
+  getBookGrouptList,
+  getBusinessAddressBookList,
+  getSignList,
+  getTempList,
+  sendSms,
+} from '@/services/ant-design-pro/api';
 import '@umijs/max';
 import type { DatePickerProps, GetProps } from 'antd';
 import {
@@ -33,6 +39,7 @@ import {
   Radio,
   Row,
   Select,
+  Tree,
 } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useEffect, useRef, useState } from 'react';
@@ -41,6 +48,8 @@ import MessagePreview from './components/MessagePreview';
 
 type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
 const { TextArea } = Input;
+
+const { Search } = Input;
 
 const useStyles = createStyles(({}) => {
   return {
@@ -87,7 +96,10 @@ const Center: React.FC = () => {
   const [filterNumberPool, setFilterNumberPool] = useState([]); // 号码池号码
 
   const rechargeRef = useRef<ActionType>();
+  const tempRef = useRef<ActionType>();
   const modalFormRef = useRef<ProFormInstance>();
+
+  const proFormRef = useRef();
 
   const [numberPoolModalOpen, setNumberPoolModalOpen] = useState<boolean>(false);
 
@@ -107,6 +119,20 @@ const Center: React.FC = () => {
   const [pickTime, setTime] = useState('');
 
   const location = useLocation();
+
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
+
+  const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
+
+  const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
+
+  const [treeData, setTreeData] = useState([]);
+
+  const [filterData, setFilterData] = useState([]);
+
+  const [filterWord, setFilterWord] = useState('');
+
+  const [tempModalOpen, setTempModalOpen] = useState(false);
 
   useEffect(() => {
     const queryMobile = new URLSearchParams(location.search).get('mobile');
@@ -135,6 +161,54 @@ const Center: React.FC = () => {
     return arr1.filter((item) => !set2.has(item));
   };
 
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    console.log('valuevaluevalue', value);
+    if (!value) {
+      setFilterData([]);
+      setFilterWord(value);
+      return;
+    }
+    const _filterData = treeData.filter((item) => item.groupName.includes(value));
+    setFilterWord(value);
+    setFilterData(_filterData);
+    // const newExpandedKeys = dataList
+    //   .map((item) => {
+    //     if (item.title.indexOf(value) > -1) {
+    //       return getParentKey(item.key, defaultData);
+    //     }
+    //     return null;
+    //   })
+    //   .filter((item, i, self): item is React.Key => !!(item && self.indexOf(item) === i));
+    // setExpandedKeys(newExpandedKeys);
+    // setSearchValue(value);
+    // setAutoExpandParent(true);
+  };
+
+  const onExpand: TreeProps['onExpand'] = (expandedKeysValue) => {
+    console.log('onExpand', expandedKeysValue);
+    setExpandedKeys(expandedKeysValue);
+  };
+
+  const onCheck: TreeProps['onCheck'] = (checkedKeys, e) => {
+    console.log('onCheck', checkedKeys, e);
+    setCheckedKeys(checkedKeys as React.Key[]);
+    // setCheckedMenuList([...checkedKeys, ...e.halfCheckedKeys])
+  };
+
+  const onSelect: TreeProps['onSelect'] = (selectedKeysValue, info) => {
+    console.log('onSelect', info);
+    setSelectedKeys(selectedKeysValue);
+  };
+
+  // 只包含数字和英文逗号
+  const validateString = (str) => {
+    return /^[0-9,]*$/.test(str);
+  };
+  function validatePhoneNumber(phoneNumber) {
+    return /1[3-9]\d{9}$/.test(phoneNumber);
+  }
+
   useEffect(() => {
     getSignList().then((res) => {
       let result = res.list.map((item) => {
@@ -147,7 +221,7 @@ const Center: React.FC = () => {
     });
   }, []);
   const onRadioChange = (e) => {
-    showTimePicker(e.target.value === 1);
+    showTimePicker(e.target.value === '1');
     setSendType(e.target.value);
   };
 
@@ -228,6 +302,59 @@ const Center: React.FC = () => {
     },
   ];
 
+  const tempColumns: ProColumns<API.RuleListItem>[] = [
+    {
+      title: '序号',
+      dataIndex: 'index',
+      valueType: 'textarea',
+      search: false,
+      render: (dom, entity, index) => {
+        return index + 1;
+      },
+    },
+    {
+      title: '名称',
+      dataIndex: 'name',
+      valueType: 'textarea',
+      search: false,
+      ellipsis: true,
+    },
+    {
+      title: '内容',
+      dataIndex: 'content',
+      valueType: 'textarea',
+      ellipsis: true,
+    },
+    {
+      title: '操作',
+      dataIndex: 'option',
+      valueType: 'option',
+      render: (_, record) => [
+        <a
+          key="config"
+          onClick={() => {
+            if (proFormRef.current) {
+              setSmsContent(record.content);
+              proFormRef.current.setFieldsValue({
+                content: record.content,
+              });
+            }
+            // handleModalOpen(true);
+            // setModalTitle('编辑模板');
+            // setTimeout(() => {
+            //   if (modalFormRef.current) {
+            //     modalFormRef.current.setFieldsValue(record);
+            //     setCurrentRow(record);
+            //   }
+            // });
+          }}
+        >
+          使用
+        </a>,
+      ],
+    },
+  ];
+
   return (
     <GridContent>
       <Row gutter={2}>
@@ -241,6 +368,7 @@ const Center: React.FC = () => {
           >
             <div className={styles.groupBox}>
               <ProForm
+                formRef={proFormRef}
                 style={{
                   // margin: 'auto',
                   marginTop: 8,
@@ -260,7 +388,6 @@ const Center: React.FC = () => {
                   }
                 }}
                 onFinish={async (values) => {
-                  console.log('valuesvalues', values);
                   let smsPayload = {
                     content: values.content,
 
@@ -277,13 +404,11 @@ const Center: React.FC = () => {
                     smsPayload['fixedTime'] = pickTime;
                   }
 
-                  console.log('smsPayload', smsPayload);
-
                   let result = await sendSms(smsPayload);
                   if (result.code === '200') {
                     message.success(result.msg);
                   } else {
-                    message.error(result.msg);
+                    // message.error(result.msg);
                   }
                 }}
               >
@@ -349,8 +474,18 @@ const Center: React.FC = () => {
                       <Button
                         type="link"
                         key="primary"
-                        onClick={() => {
+                        onClick={async () => {
                           setAddressBookModalOpen(true);
+                          let res = await getBookGrouptList();
+                          setTimeout(() => {
+                            let filterArr = res.data.map((item) => {
+                              return {
+                                ...item,
+                                itemConNumber: `${item.groupName}(${item.count})`,
+                              };
+                            });
+                            setTreeData(filterArr);
+                          });
                         }}
                       >
                         <BookOutlined /> 通讯录导入
@@ -396,11 +531,11 @@ const Center: React.FC = () => {
                   >
                     <TextArea
                       showCount
-                      maxLength={100}
+                      maxLength={500}
                       onChange={onTextChange}
                       placeholder="请输入短信内容"
                       style={{
-                        height: 120,
+                        height: 150,
                         resize: 'none',
                       }}
                     />
@@ -410,6 +545,7 @@ const Center: React.FC = () => {
                     key="primary"
                     onClick={() => {
                       // handleModalOpen(true);
+                      setTempModalOpen(true);
                     }}
                   >
                     <FileAddOutlined /> 选择短信模板
@@ -512,12 +648,24 @@ const Center: React.FC = () => {
         onOpenChange={handlePhoneIncreaseModalOpen}
         onFinish={async (value) => {
           console.log('手动添加', value);
+          if (!value.mobile) {
+            return message.error('请输入待发送短信的手机号码！');
+          } else {
+            if (!validateString(value.mobile)) {
+              return message.error('存在非法字符，请重新输入！');
+            }
+          }
+
           if (value.mobile && value.mobile.trim()) {
             // 使用 Map 对象来去除重复项
             let map = new Map();
             let payload = [];
             let mobileSplit = value.mobile.split(',');
+            let checkIsPass = true;
             mobileSplit.map((item) => {
+              if (!validatePhoneNumber(item)) {
+                checkIsPass = false;
+              }
               payload.push({
                 mobile: item,
                 name: '-',
@@ -525,6 +673,10 @@ const Center: React.FC = () => {
               });
               return item;
             });
+            if (!checkIsPass) {
+              message.error('存在格式错误的手机号，请检查后重新输入！');
+              return;
+            }
             let arr = [...payload, ...numberPoolDataSource];
             arr.forEach((obj) => {
               let key = getObjectKey(obj);
@@ -617,13 +769,69 @@ const Center: React.FC = () => {
           }}
         />
       </Modal>
-      {/* 通讯录导入 */}
+      {/* 模板导入 */}
       <Modal
         width={1000}
+        footer=""
+        title="模板导入"
+        open={tempModalOpen}
+        onCancel={() => setTempModalOpen(false)}
+      >
+        <ProTable<API.RuleListItem, API.PageParams>
+          headerTitle={'查询表格'}
+          actionRef={tempRef}
+          rowKey="key"
+          search={{
+            labelWidth: 120,
+          }}
+          options={false}
+          request={getTempList}
+          columns={tempColumns}
+          rowSelection={false}
+        />
+      </Modal>
+      {/* 通讯录导入 */}
+      <Modal
+        width={300}
         title="通讯录导入"
         open={addressBookModalOpen}
         onCancel={() => setAddressBookModalOpen(false)}
-      ></Modal>
+        onOk={async () => {
+          let payload = {
+            groupId: checkedKeys.join(','),
+          };
+          let result = await getBusinessAddressBookList(payload);
+
+          if (result.code === '200') {
+            let filterNumbers = result.list.map((item) => {
+              return {
+                mobile: item.phoneNumber,
+                name: item.name || '-',
+                group: item.groupName || '-',
+              };
+            });
+            setNumberPool([...numberPoolDataSource, ...filterNumbers]);
+          }
+        }}
+      >
+        <Search style={{ marginBottom: 8 }} placeholder="Search" onChange={onChange} />
+        <Tree
+          checkable
+          onExpand={onExpand}
+          expandedKeys={expandedKeys}
+          autoExpandParent={true}
+          defaultExpandAll={true}
+          onCheck={onCheck}
+          checkedKeys={checkedKeys}
+          onSelect={onSelect}
+          selectedKeys={selectedKeys}
+          treeData={filterWord ? filterData : treeData}
+          fieldNames={{
+            title: 'itemConNumber',
+            key: 'groupId',
+          }}
+        />
+      </Modal>
       <ModalForm
         title={modalTitle}
         width="400px"

@@ -117,7 +117,11 @@ const TableList: React.FC = () => {
       render: (_, record) => {
         console.log('recordrecord', _, record);
 
-        return <span>{moment(record.createTime).format('YYYY-MM-DD HH:mm:ss')}</span>;
+        return (
+          <span>
+            {record.sendTime ? moment(record.sendTime).format('YYYY-MM-DD HH:mm:ss') : '-'}
+          </span>
+        );
       },
     },
     {

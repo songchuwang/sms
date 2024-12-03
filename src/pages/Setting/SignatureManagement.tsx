@@ -3,7 +3,6 @@ import {
   handleSignAdd,
   handleSignRemove,
   handleSignUpdate,
-  removeRule,
   updateRule,
 } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
@@ -14,7 +13,6 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import {
-  FooterToolbar,
   ModalForm,
   PageContainer,
   ProDescriptions,
@@ -52,28 +50,6 @@ const handleUpdate = async (fields: FormValueType) => {
   }
 };
 
-/**
- *  Delete node
- * @zh-CN 删除节点
- *
- * @param selectedRows
- */
-const handleRemove = async (selectedRows: API.RuleListItem[]) => {
-  const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
-  try {
-    await removeRule({
-      key: selectedRows.map((row) => row.key),
-    });
-    hide();
-    message.success('Deleted successfully and will refresh soon');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Delete failed, please try again');
-    return false;
-  }
-};
 const formItemLayout = {
   labelCol: { span: 6 },
   wrapperCol: { span: 18 },
@@ -93,7 +69,6 @@ const TableList: React.FC = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
   const [modalTitle, setModalTitle] = useState('新增签名模板');
 
   // useEffect(() => {
@@ -219,43 +194,8 @@ const TableList: React.FC = () => {
         ]}
         request={getSignatureList}
         columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
-        }}
+        rowSelection={false}
       />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              已选择{' '}
-              <a
-                style={{
-                  fontWeight: 600,
-                }}
-              >
-                {selectedRowsState.length}
-              </a>{' '}
-              项 &nbsp;&nbsp;
-              <span>
-                服务调用次数总计 {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)} 万
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            批量删除
-          </Button>
-          <Button type="primary">批量审批</Button>
-        </FooterToolbar>
-      )}
       <ModalForm
         {...formItemLayout}
         title={modalTitle}
@@ -276,7 +216,6 @@ const TableList: React.FC = () => {
           },
         }}
         onFinish={async (value) => {
-          console.log('handleAccountEdit', value);
           let payload = {
             ...value,
           };

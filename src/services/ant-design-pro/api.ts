@@ -465,6 +465,15 @@ export async function getSmsCheckLog(options?: { [key: string]: any }) {
   });
 }
 
+export async function getBusinessAddressBookList(options?: { [key: string]: any }) {
+  return request<API.RuleList>('/api/v1/admin/business/address/book/list', {
+    method: 'GET',
+    params: {
+      ...options,
+    },
+  });
+}
+
 export async function getConsumptionLog(options?: { [key: string]: any }) {
   console.log('getRoleList', options);
   return request<API.RuleList>('/api/v1/admin/home/business/statistics/consumption/log', {
