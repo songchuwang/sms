@@ -708,7 +708,7 @@ const Center: React.FC = () => {
                 defaultOpenKeys={['sub1']}
                 mode="inline"
                 items={menuList}
-                style={{ maxHeight: '750px', overflowY: 'auto' }}
+                style={{ maxHeight: '100vh', overflowY: 'auto' }}
               />
             </div>
           </Card>
@@ -754,7 +754,7 @@ const Center: React.FC = () => {
           if (result.code === '200') {
             message.success(modalTitle === '编辑通讯录分组' ? '修改成功' : '新增成功');
             handleCreateModalOpen(false);
-            await getBookGrouptListFn();
+            await getBookGrouptListFn(groupProps);
             setTimeout(() => {
               if (createGroupRef.current) {
                 createGroupRef.current.resetFields();

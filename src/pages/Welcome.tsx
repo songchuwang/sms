@@ -11,25 +11,150 @@ import {
   CalculatorOutlined,
   CommentOutlined,
   CrownOutlined,
-  FundOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { Link, useModel } from '@umijs/max';
-import { Card, Radio, theme } from 'antd';
+import { Avatar, Card, Col, Row } from 'antd';
 import { createStyles } from 'antd-style';
-import ReactEcharts from 'echarts-for-react';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import React, { useEffect, useState } from 'react';
+import IntroduceRow from './components/IntroduceRow';
+dayjs.extend(relativeTime);
 
 const useStyles = createStyles(({ token }) => {
   return {
     tabs: {
       backgroundColor: 'red',
     },
+    extraContent: {
+      zoom: '1',
+      '&::before, &::after': { display: 'table', content: "' '" },
+      '&::after': {
+        clear: 'both',
+        height: '0',
+        fontSize: '0',
+        visibility: 'hidden',
+      },
+      float: 'right',
+      whiteSpace: 'nowrap',
+      [`@media screen and (max-width: ${token.screenXL}px) and (min-width: @screen-lg)`]: {
+        marginLeft: '-44px',
+      },
+      [`@media screen and (max-width: ${token.screenLG}px)`]: {
+        float: 'none',
+        marginRight: '0',
+      },
+      [`@media screen and (max-width: ${token.screenMD}px)`]: {
+        marginLeft: '-16px',
+      },
+    },
+    projectList: {
+      '.ant-card-meta-description': {
+        height: '44px',
+        overflow: 'hidden',
+        color: token.colorTextSecondary,
+        lineHeight: '22px',
+      },
+    },
+    cardTitle: {
+      fontSize: '0',
+      a: {
+        display: 'inline-block',
+        height: '24px',
+        marginLeft: '12px',
+        color: token.colorTextHeading,
+        fontSize: token.fontSize,
+        lineHeight: '24px',
+        verticalAlign: 'top',
+        '&:hover': {
+          color: token.colorPrimary,
+        },
+      },
+    },
+    projectGrid: {
+      width: '33.33%',
+      [`@media screen and (max-width: ${token.screenMD}px)`]: { width: '50%' },
+      [`@media screen and (max-width: ${token.screenXS}px)`]: { width: '100%' },
+    },
+    projectItemContent: {
+      display: 'flex',
+      height: '20px',
+      marginTop: '8px',
+      overflow: 'hidden',
+      fontSize: '12px',
+      gap: 'epx',
+      lineHeight: '20px',
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
+      wordBreak: 'break-all',
+      a: {
+        display: 'inline-block',
+        flex: '1 1 0',
+        color: token.colorTextSecondary,
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
+        wordBreak: 'break-all',
+        '&:hover': {
+          color: token.colorPrimary,
+        },
+      },
+    },
+    datetime: {
+      flex: '0 0 auto',
+      float: 'right',
+      color: token.colorTextDisabled,
+    },
+    activitiesList: {
+      padding: '0 24px 8px 24px',
+    },
+    activeCard: {
+      [`@media screen and (max-width: ${token.screenXL}px) and (min-width: @screen-lg)`]: {
+        marginBottom: '24px',
+      },
+      [`@media screen and (max-width: ${token.screenLG}px)`]: {
+        marginBottom: '24px',
+      },
+    },
     chart1_active: {
       background: 'pink',
       padding: '5px 10px',
       borderRadius: '2px',
+    },
+    pageHeaderContent: {
+      display: 'flex',
+      [`@media screen and (max-width: ${token.screenSM}px)`]: {
+        display: 'block',
+      },
+    },
+    avatar: {
+      flex: '0 1 72px',
+      '& > span': {
+        display: 'block',
+        width: '72px',
+        height: '72px',
+        borderRadius: '72px',
+      },
+    },
+    content: {
+      position: 'relative',
+      top: '4px',
+      flex: '1 1 auto',
+      marginLeft: '24px',
+      color: token.colorTextSecondary,
+      lineHeight: '22px',
+      [`@media screen and (max-width: ${token.screenSM}px)`]: {
+        marginLeft: '0',
+      },
+    },
+    contentTitle: {
+      marginBottom: '12px',
+      color: token.colorTextHeading,
+      fontWeight: '500',
+      fontSize: '20px',
+      lineHeight: '28px',
     },
     action: {
       display: 'flex',
@@ -80,157 +205,35 @@ const useStyles = createStyles(({ token }) => {
     },
   };
 });
-/**
- * 每个单独的卡片，为了复用样式抽成了组件
- * @param param0
- * @returns
- */
-const InfoCard: React.FC<{
-  title: string;
-  index: number;
-  desc: string;
-  href: string;
-  cardType: number;
-}> = ({ title, cardType }) => {
+
+// const ExtraContent: FC<Record<string, any>> = () => {
+//   const { styles } = useStyles();
+//   return (
+//     <div className={styles.extraContent}>
+//       <img style={{ width: 100, height: 100 }} src="http://47.119.114.79:8080/profile/upload/2024/10/28/WechatIMG790_20241028110045A009.png" alt="" />
+//     </div>
+//   );
+// };
+
+const PageHeaderContent: FC<{
+  currentUser: Partial<CurrentUser>;
+}> = ({ currentUser }) => {
   const { styles } = useStyles();
-  const initialState = useModel('@@initialState');
-  const { currentUser } = initialState?.initialState || {};
-
-  const { useToken } = theme;
-
-  const { token } = useToken();
-
   return (
-    <div
-      style={{
-        backgroundColor: token.colorBgContainer,
-        boxShadow: token.boxShadow,
-        borderRadius: '8px',
-        fontSize: '14px',
-        color: token.colorTextSecondary,
-        lineHeight: '22px',
-        padding: '16px 19px',
-        minWidth: '220px',
-        flex: 1,
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          gap: '4px',
-          alignItems: 'center',
-        }}
-      >
-        <div
-          style={{
-            fontSize: '16px',
-            color: token.colorText,
-            paddingBottom: 8,
-          }}
-        >
-          {title}
+    <div className={styles.pageHeaderContent}>
+      <div className={styles.avatar}>
+        <Avatar size="large" src={currentUser.avatar} />
+      </div>
+      <div className={styles.content}>
+        <div className={styles.contentTitle}>
+          {/* 早安， */}
+          {currentUser.account}
+          {/* ，祝你开心每一天！ */}
+        </div>
+        <div>
+          {currentUser.name} | {currentUser.address}
         </div>
       </div>
-      {cardType === 1 ? (
-        <div>
-          <div>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
-              <span style={{ color: '#3A4663', fontSize: 16 }}>{currentUser?.account}</span>
-              <span style={{ color: '#3A4663', fontSize: 16, marginTop: 5, marginBottom: 5 }}>
-                {currentUser?.name}
-              </span>
-              <span style={{ color: '#3A4663', fontSize: 16 }}>
-                广东深圳市龙岗区{currentUser?.address}
-              </span>
-            </div>
-          </div>
-          <div></div>
-        </div>
-      ) : (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'flex-start',
-            flexWrap: 'wrap',
-          }}
-        >
-          <div
-            style={{
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'flex-start',
-              flex: 1,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                width: '100%',
-                flex: 1,
-              }}
-            >
-              <div className={styles.contentLink}>
-                <Link to="/smsManage/smsList">
-                  <a>
-                    <AuditOutlined style={{ marginRight: '5px' }} />
-                    待审核短信
-                  </a>
-                </Link>
-                <Link to="/smsManage/sendSms">
-                  <a>
-                    <CommentOutlined style={{ marginRight: '5px' }} />
-                    发送短信
-                  </a>
-                </Link>
-                <Link to="/account/employeeAccount">
-                  <a>
-                    <TeamOutlined style={{ marginRight: '5px' }} />
-                    员工账户
-                  </a>
-                </Link>
-              </div>
-              <div className={styles.contentLink}>
-                <Link to="/consumption/accountRecharge">
-                  <a>
-                    <CrownOutlined style={{ marginRight: '5px' }} />
-                    账户充值
-                  </a>
-                </Link>
-                <Link to="/AddressBookManage">
-                  <a>
-                    <BookOutlined style={{ marginRight: '5px' }} />
-                    通讯录
-                  </a>
-                </Link>
-                <Link to="/consumption/consumptionDetails">
-                  <a>
-                    <CalculatorOutlined style={{ marginRight: '5px' }} />
-                    消费明细
-                  </a>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      <div
-        style={{
-          fontSize: '14px',
-          color: token.colorTextSecondary,
-          textAlign: 'justify',
-          lineHeight: '22px',
-          marginBottom: 8,
-        }}
-      ></div>
     </div>
   );
 };
@@ -238,10 +241,12 @@ const InfoCard: React.FC<{
 const Welcome: React.FC = () => {
   // const { token } = theme.useToken();
   const { initialState } = useModel('@@initialState');
-  // 企业消费tab切换
-  const [activeTab, setActiveTab] = useState('1');
 
-  const [chargeActiveTab, setChargeActiveTab] = useState('1');
+  console.log('initialState123', initialState);
+
+  const { currentUser } = initialState || {};
+
+  console.log('currentUser123', currentUser);
 
   // 近期消费记录
   const [consumptionData, setConsumptionData] = useState([]); // 企业消费图表
@@ -252,212 +257,64 @@ const Welcome: React.FC = () => {
 
   const [rechargeLogData, setRechargeLogData] = useState([]); // 充值记录图表
   // 消费记录
-  const getConsumptionLogFn = (type = 1) => {
+  const getConsumptionLogFn = (type = 2) => {
     let params = {
       type: type,
     };
     getConsumptionLog(params).then((res) => {
       console.log('getConsumptionLog', res);
-      setConsumptionData(res.list || []);
+      setConsumptionData(
+        res.list.map((item) => {
+          return {
+            ...item,
+            showField: '消费金额',
+          };
+        }) || [],
+      );
     });
-  };
-  const onTabChange = (e: RadioChangeEvent) => {
-    setActiveTab(e.target.value);
-    getConsumptionLogFn(2);
-  };
-  // 平台企业消费折线图
-  const LineChart1 = () => {
-    const option = {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow',
-        },
-      },
-      legend: {
-        data: ['消费(元)'],
-        bottom: 10,
-      },
-      xAxis: {
-        type: 'category',
-        data: consumptionData.map((item) => item.date),
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '12%',
-        top: '15%',
-        containLabel: true,
-      },
-      yAxis: {
-        type: 'value',
-      },
-      series: [
-        {
-          name: '消费(元)',
-          data: consumptionData.map((item) => item.consumption),
-          type: 'line',
-          smooth: true,
-          label: {
-            show: true,
-            position: 'top',
-          },
-        },
-      ],
-    };
-    return <ReactEcharts option={option} />;
   };
   // 发送短信（条）
   const getSendCountFn = () => {
     getSendCount().then((res) => {
       console.log('getSendCountFn', res);
-      setSendCountData(res.list || []);
+      setSendCountData(
+        res.list.map((item) => {
+          return {
+            ...item,
+            showField: '发送条数',
+          };
+        }) || [],
+      );
     });
-  };
-  const LineChart2 = () => {
-    const option = {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow',
-        },
-      },
-      legend: {
-        data: ['发送短信(条)'],
-        bottom: 10,
-      },
-      xAxis: {
-        type: 'category',
-        data: sendCountData.map((item) => item.date),
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '12%',
-        top: '15%',
-        containLabel: true,
-      },
-      yAxis: {
-        type: 'value',
-      },
-      series: [
-        {
-          name: '发送短信(条)',
-          data: sendCountData.map((item) => item.sendCount),
-          type: 'line',
-          smooth: true,
-          label: {
-            show: true,
-            position: 'top',
-          },
-        },
-      ],
-    };
-    return <ReactEcharts option={option} />;
   };
   // 剩余短信
   const getLeftCountFn = () => {
     getLeftCount().then((res) => {
-      setLeftCountData(res.list || []);
+      setLeftCountData(
+        res.list.map((item) => {
+          return {
+            ...item,
+            showField: '剩余短信条数',
+          };
+        }) || [],
+      );
     });
   };
-  const LineChart3 = () => {
-    const option = {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow',
-        },
-      },
-      legend: {
-        data: ['剩余短信(条)'],
-        bottom: 13,
-      },
-      xAxis: {
-        type: 'category',
-        data: leftCountData.map((item) => item.date),
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '12%',
-        top: '15%',
-        containLabel: true,
-      },
-      yAxis: {
-        type: 'value',
-      },
-      series: [
-        {
-          name: '剩余短信(条)',
-          data: leftCountData.map((item) => item.leftCount),
-          type: 'line',
-          smooth: true,
-          label: {
-            show: true,
-            position: 'top',
-          },
-        },
-      ],
-    };
-    return <ReactEcharts option={option} />;
-  };
-  //
-  const getRechargeLogFn = (type = 1) => {
+  const getRechargeLogFn = (type = 2) => {
     let params = {
       type: type,
     };
     getRechargeLog(params).then((res) => {
-      setRechargeLogData(res.list || []);
+      setRechargeLogData(
+        res.list.map((item) => {
+          return {
+            ...item,
+            showField: '充值金额',
+          };
+        }) || [],
+      );
     });
   };
-  const onChargeTabChange = (e: RadioChangeEvent) => {
-    setChargeActiveTab(e.target.value);
-    getRechargeLogFn(2);
-  };
-  // 充值
-  const LineChart4 = () => {
-    const option = {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow',
-        },
-      },
-      legend: {
-        data: ['充值(元)'],
-        bottom: 10,
-      },
-      xAxis: {
-        type: 'category',
-        data: rechargeLogData.map((item) => item.date),
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '12%',
-        top: '15%',
-        containLabel: true,
-      },
-      yAxis: {
-        type: 'value',
-      },
-      series: [
-        {
-          name: '充值(元)',
-          data: rechargeLogData.map((item) => item.rechargeMoney),
-          type: 'line',
-          smooth: true,
-          label: {
-            show: true,
-            position: 'top',
-          },
-        },
-      ],
-    };
-    return <ReactEcharts option={option} />;
-  };
-
   useEffect(() => {
     // 图表——近期消费记录
     getConsumptionLogFn();
@@ -469,173 +326,144 @@ const Welcome: React.FC = () => {
     getRechargeLogFn();
   }, []);
 
+  const { styles } = useStyles();
+
+  let data = [
+    {
+      id: 'xxx1',
+      title: '待审核短信',
+      logo: <AuditOutlined style={{ width: 20, height: 20, fontSize: 18 }} />,
+      description: '查看并审核所有待发送的短信内容，确保信息准确无误',
+      updatedAt: '',
+      member: '',
+      href: '/smsManage/smsList',
+      memberLink: '',
+    },
+    {
+      id: 'xxx2',
+      title: '发送短信',
+      logo: <CommentOutlined style={{ width: 20, height: 20, fontSize: 18 }} />,
+      description: '直接进入短信发送页面，快速群发或单发营销、通知等短信',
+      updatedAt: '',
+      member: '',
+      href: '/smsManage/sendSms',
+      memberLink: '',
+    },
+    {
+      id: 'xxx3',
+      title: '员工账户',
+      logo: <TeamOutlined style={{ width: 20, height: 20, fontSize: 18 }} />,
+      description: '管理员工账户信息，包括账户创建、权限分配及密码重置等',
+      updatedAt: '',
+      member: '',
+      href: '/account/employeeAccount',
+      memberLink: '',
+    },
+    {
+      id: 'xxx4',
+      title: '账户充值',
+      logo: <CrownOutlined style={{ width: 20, height: 20, fontSize: 18 }} />,
+      description: '为短信账户充值，确保余额充足以支持短信发送服务',
+      updatedAt: '',
+      member: '',
+      href: '/consumption/accountRecharge',
+      memberLink: '',
+    },
+    {
+      id: 'xxx5',
+      title: '通讯录',
+      logo: <BookOutlined style={{ width: 20, height: 20, fontSize: 18 }} />,
+      description: '维护联系人信息，方便快速选择短信接收者，提高发送效率',
+      updatedAt: '',
+      member: '',
+      href: '/AddressBookManage',
+      memberLink: '',
+    },
+    {
+      id: 'xxx6',
+      title: '消费明细',
+      logo: <CalculatorOutlined style={{ width: 20, height: 20, fontSize: 18 }} />,
+      description: '查看短信发送的消费记录，包括发送时间、数量及费用详情，便于财务管理',
+      updatedAt: '',
+      member: '',
+      href: '/consumption/consumptionDetails',
+      memberLink: '',
+    },
+  ];
+
   return (
-    <PageContainer>
-      <Card
-        style={{
-          borderRadius: 8,
-        }}
-        bodyStyle={{
-          backgroundImage:
-            initialState?.settings?.navTheme === 'realDark'
-              ? 'background-image: linear-gradient(75deg, #1A1B1F 0%, #191C1F 100%)'
-              : 'background-image: linear-gradient(75deg, #FBFDFF 0%, #F5F7FF 100%)',
-        }}
-      >
-        <div
-          style={{
-            backgroundPosition: '100% -30%',
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: '274px auto',
-            backgroundImage:
-              "url('https://gw.alipayobjects.com/mdn/rms_a9745b/afts/img/A*BuFmQqsB2iAAAAAAAAAAAAAAARQnAQ')",
+    <PageContainer
+      content={
+        <PageHeaderContent
+          currentUser={{
+            avatar: 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png',
+            account: currentUser?.account,
+            name: currentUser?.name,
+            userid: '00000001',
+            email: 'antdesign@alipay.com',
+            signature: '海纳百川，有容乃大',
+            title: '交互专家',
+            address: `${
+              currentUser?.province === currentUser?.city
+                ? currentUser?.province
+                : currentUser?.province + currentUser?.city
+            }${currentUser?.area}${currentUser?.address}`,
           }}
-        >
-          {/* <div
+        />
+      }
+      // extraContent={<ExtraContent />}
+    >
+      <Row gutter={24}>
+        <Col xl={24} lg={24} md={24} sm={24} xs={24}>
+          <Card
+            className={styles.projectList}
             style={{
-              fontSize: '20px',
-              color: token.colorTextHeading,
+              marginBottom: 24,
+            }}
+            title="快捷入口"
+            bordered={false}
+            loading={false}
+            bodyStyle={{
+              padding: 0,
             }}
           >
-            欢迎使用杰讯互联短信管理平台
-          </div>
-          <p
-            style={{
-              fontSize: '14px',
-              color: token.colorTextSecondary,
-              lineHeight: '22px',
-              marginTop: 16,
-              marginBottom: 32,
-              width: '65%',
-            }}
-          >
-            这是一段平台介绍文本：Ant Design Pro 是一个整合了 umi，Ant Design 和 ProComponents
-            的脚手架方案。致力于在设计规范和基础组件的基础上，继续向上构建，提炼出典型模板/业务组件/配套设计资源，进一步提升企业级中后台产品设计研发过程中的『用户』和『设计者』的体验。
-          </p> */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 16,
-            }}
-          >
-            <InfoCard
-              index={1}
-              cardType={1}
-              href="https://umijs.org/docs/introduce/introduce"
-              title="账户基本信息"
-              desc="umi 是一个可扩展的企业级前端应用框架,umi 以路由为基础的，同时支持配置式路由和约定式路由，保证路由的功能完备，并以此进行功能扩展。"
-            />
-            <InfoCard
-              index={2}
-              cardType={2}
-              title="快捷入口"
-              href="https://ant.design"
-              desc="antd 是基于 Ant Design 设计体系的 React UI 组件库，主要用于研发企业级中后台产品。"
-            />
-          </div>
-        </div>
-      </Card>
-      <Card
-        style={{
-          borderRadius: 8,
-          marginTop: 10,
-        }}
-        bodyStyle={{
-          backgroundImage:
-            initialState?.settings?.navTheme === 'realDark'
-              ? 'background-image: linear-gradient(75deg, #1A1B1F 0%, #191C1F 100%)'
-              : 'background-image: linear-gradient(75deg, #FBFDFF 0%, #F5F7FF 100%)',
-        }}
-      >
-        <div>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              flex: 1,
-              width: '100%',
-            }}
-          >
-            <FundOutlined style={{ fontSize: 18 }} />
-            <span style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10 }}>数据看板</span>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'flex-start',
-              flexWrap: 'wrap',
-            }}
-          >
-            <div style={{ width: '50%', height: '300px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                  alignItems: 'center',
-                  position: 'relative',
-                  boxSizing: 'border-box',
-                  paddingRight: '25px',
-                }}
-              >
-                <Radio.Group value={activeTab} onChange={onTabChange} style={{}}>
-                  <Radio.Button value="1">近半年</Radio.Button>
-                  <Radio.Button value="2">近一年</Radio.Button>
-                </Radio.Group>
-              </div>
-              <LineChart1 />
-            </div>
-            <div style={{ width: '50%', height: '300px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                  alignItems: 'center',
-                  position: 'relative',
-                  height: '32px',
-                }}
-              ></div>
-              <LineChart2 />
-            </div>
-            <div style={{ width: '50%', height: '300px', marginTop: '40px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                  alignItems: 'center',
-                  position: 'relative',
-                  height: '32px',
-                }}
-              ></div>
-              <LineChart3 />
-            </div>
-            <div style={{ width: '50%', height: '300px', marginTop: '40px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                  alignItems: 'center',
-                  position: 'relative',
-                  boxSizing: 'border-box',
-                  paddingRight: '25px',
-                }}
-              >
-                <Radio.Group value={chargeActiveTab} onChange={onChargeTabChange} style={{}}>
-                  <Radio.Button value="1">近半年</Radio.Button>
-                  <Radio.Button value="2">近一年</Radio.Button>
-                </Radio.Group>
-              </div>
-              <LineChart4 />
-            </div>
-          </div>
-        </div>
-      </Card>
+            {data.map((item) => (
+              <Card.Grid className={styles.projectGrid} key={item.id}>
+                <Card
+                  bodyStyle={{
+                    padding: 0,
+                  }}
+                  bordered={false}
+                >
+                  <Card.Meta
+                    title={
+                      <div className={styles.cardTitle}>
+                        {item.logo ? item.logo : null}
+                        <Link to={item.href || '/'}>{item.title}</Link>
+                      </div>
+                    }
+                    description={item.description}
+                  />
+                  <div className={styles.projectItemContent}>
+                    <Link to={item.memberLink || '/'}>{item.member || ''}</Link>
+                    {item.updatedAt && (
+                      <span className={styles.datetime} title={item.updatedAt}>
+                        {dayjs(item.updatedAt).fromNow()}
+                      </span>
+                    )}
+                  </div>
+                </Card>
+              </Card.Grid>
+            ))}
+          </Card>
+        </Col>
+      </Row>
+      <IntroduceRow
+        visitData={consumptionData || []}
+        sendCountData={sendCountData || []}
+        leftCountData={leftCountData || []}
+        rechargeLogData={rechargeLogData || []}
+      />
     </PageContainer>
   );
 };

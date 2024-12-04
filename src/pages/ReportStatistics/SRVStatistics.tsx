@@ -132,7 +132,6 @@ const TableList: React.FC = () => {
 
   const ProTableFn = (key) => {
     if (key === '1') {
-      console.log('columnscolumnscolumns1', columns);
       setColumns([
         {
           title: '序号',
@@ -147,6 +146,7 @@ const TableList: React.FC = () => {
           title: '日期（天）',
           dataIndex: 'date',
           valueType: 'dateRange',
+          search: false,
           search: {
             transform: (value) => {
               console.log('transform', value);
@@ -189,6 +189,7 @@ const TableList: React.FC = () => {
           title: '日期（月份）',
           dataIndex: 'date',
           valueType: 'dateRange',
+          search: false,
           search: {
             transform: (value) => {
               console.log('transform', value);
@@ -216,7 +217,6 @@ const TableList: React.FC = () => {
         },
       ]);
     } else if (key === '3') {
-      console.log('columnscolumnscolumns3', columns);
       setColumns([
         {
           title: '序号',
@@ -231,6 +231,7 @@ const TableList: React.FC = () => {
           title: '日期（年份）',
           dataIndex: 'date',
           valueType: 'dateRange',
+          search: false,
           search: {
             transform: (value) => {
               console.log('transform', value);
@@ -263,9 +264,13 @@ const TableList: React.FC = () => {
         headerTitle={'查询表格'}
         actionRef={actionRef}
         rowKey="key"
-        search={{
-          labelWidth: 120,
-        }}
+        search={
+          statisticsType === 1
+            ? {
+                labelWidth: 120,
+              }
+            : false
+        }
         toolBarRender={() => [
           <Button
             type="primary"

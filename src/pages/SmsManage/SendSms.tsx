@@ -250,15 +250,15 @@ const Center: React.FC = () => {
   };
 
   const numberPoolColumns = [
-    {
-      title: '序号',
-      dataIndex: 'index',
-      valueType: 'textarea',
-      search: false,
-      render: (dom, entity, index) => {
-        return index + 1;
-      },
-    },
+    // {
+    //   title: '序号',
+    //   dataIndex: 'index',
+    //   valueType: 'textarea',
+    //   search: false,
+    //   render: (dom, entity, index) => {
+    //     return index + 1;
+    //   },
+    // },
     {
       title: '手机号码',
       dataIndex: 'mobile',
@@ -810,7 +810,20 @@ const Center: React.FC = () => {
                 group: item.groupName || '-',
               };
             });
-            setNumberPool([...numberPoolDataSource, ...filterNumbers]);
+
+            let map = new Map();
+            let conArr = [...numberPoolDataSource, ...filterNumbers];
+            conArr.forEach((obj) => {
+              let key = getObjectKey(obj);
+              // 如果 Map 中还没有这个键，则添加对象
+              if (!map.has(key)) {
+                map.set(key, obj);
+              }
+            });
+
+            let uniqueObjects = [...map.values()];
+
+            setNumberPool(uniqueObjects);
           }
         }}
       >

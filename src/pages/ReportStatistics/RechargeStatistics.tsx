@@ -177,6 +177,7 @@ const TableList: React.FC = () => {
               };
             },
           },
+          search: false,
           render: (_, record) => {
             console.log('recordrecord', _, record);
 
@@ -205,6 +206,7 @@ const TableList: React.FC = () => {
           title: '日期（年份）',
           dataIndex: 'date',
           valueType: 'dateRange',
+          search: false,
           search: {
             transform: (value) => {
               console.log('transform', value);
@@ -232,9 +234,13 @@ const TableList: React.FC = () => {
         headerTitle={'查询表格'}
         actionRef={actionRef}
         rowKey="key"
-        search={{
-          labelWidth: 120,
-        }}
+        search={
+          statisticsType === 1
+            ? {
+                labelWidth: 120,
+              }
+            : false
+        }
         toolBarRender={() => [
           <Button
             type="primary"

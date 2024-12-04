@@ -4,7 +4,7 @@ export default [
     layout: false,
     routes: [{ name: '登录', path: '/user/login', component: './User/Login' }],
   },
-  { path: '/welcome', name: '首页', icon: 'home', component: './Welcome' },
+  { path: '/welcome', name: '工作台', icon: 'home', component: './Welcome' },
   {
     path: '/smsManage',
     name: '短信管理',
