@@ -29,13 +29,29 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Card, Col, Menu, message, Popconfirm, Row, Space } from 'antd';
+import { Button, Card, Col, message, Popconfirm, Row, Space } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useEffect, useRef, useState } from 'react';
 const downLoadUrl = '/api/v1/admin/business/address/book/export';
 
 const useStyles = createStyles(({}) => {
   return {
+    menu_hover: {
+      height: 40,
+      boxSizing: 'border-box',
+      minHeight: 40,
+      paddingLeft: 16,
+      paddingRight: 16,
+      borderRadius: 5,
+      marginBottom: 2,
+      cursor: 'pointer',
+      '&:hover': {
+        backgroundColor: 'rgba(0,0,0,0.06)',
+      },
+      span: {
+        fontSize: 16,
+      },
+    },
     groupBox: {
       display: 'flex',
       flex: 1,
@@ -623,53 +639,24 @@ const Center: React.FC = () => {
       }
       setGroupData(valueEnum);
 
-      let menuChildren = data.map((item, index) => {
-        return {
-          key: index,
-          label: (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flex: 1,
-              }}
-              onClick={() => {
-                updatePage(item);
-              }}
-            >
-              <span>
-                {item.groupName}({item.count})
-              </span>
-              <EditOutlined
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleCreateModalOpen(true);
-                  handleUpdateModalTitle('编辑通讯录分组');
-                  setCurrentGroupItem(item);
-                  console.log('_setCurrentGroupItem_', item);
-                  setTimeout(() => {
-                    if (createGroupRef.current) {
-                      createGroupRef.current.setFieldsValue(item);
-                    }
-                  }, 100);
-                }}
-                style={{ color: '#1890ff' }}
-              />
-            </div>
-          ),
-        };
-      });
-      setMenuList([
-        {
-          key: 'grp',
-          label: '通讯录',
-          type: 'group',
-          children: menuChildren,
-        },
-      ]);
+      // let menuChildren = data.map((item, index) => {
+
+      //   return {
+      //     key: item.groupId,
+      //     label: (
+
+      //     ),
+      //   };
+      // });
+      setMenuList(data);
+      // setMenuList([
+      //   {
+      //     key: 'grp',
+      //     label: '通讯录',
+      //     type: 'group',
+      //     children: menuChildren,
+      //   },
+      // ]);
     });
   };
 
@@ -693,6 +680,7 @@ const Center: React.FC = () => {
               <Button
                 type="primary"
                 key="primary"
+                style={{ marginBottom: 15 }}
                 onClick={() => {
                   handleCreateModalOpen(true);
                   if (createGroupRef.current) {
@@ -703,13 +691,56 @@ const Center: React.FC = () => {
               >
                 <PlusOutlined /> 新建分组
               </Button>
-              <Menu
+
+              {menuList.length
+                ? menuList.map((item) => {
+                    return (
+                      <div
+                        key={item.groupId}
+                        className={styles.menu_hover}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          flex: 1,
+                          backgroundColor: item.groupId === groupProps.groupId ? '#e6f7ff' : '#fff',
+                        }}
+                        onClick={() => {
+                          updatePage(item);
+                        }}
+                      >
+                        <span>
+                          {item.groupName}({item.count})
+                        </span>
+                        <EditOutlined
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleCreateModalOpen(true);
+                            handleUpdateModalTitle('编辑通讯录分组');
+                            setCurrentGroupItem(item);
+                            console.log('_setCurrentGroupItem_', item);
+                            setTimeout(() => {
+                              if (createGroupRef.current) {
+                                createGroupRef.current.setFieldsValue(item);
+                              }
+                            }, 100);
+                          }}
+                          style={{ color: '#1890ff' }}
+                        />
+                      </div>
+                    );
+                  })
+                : null}
+
+              {/* <Menu
                 defaultSelectedKeys={['0']}
                 defaultOpenKeys={['sub1']}
                 mode="inline"
                 items={menuList}
                 style={{ maxHeight: '100vh', overflowY: 'auto' }}
-              />
+              /> */}
             </div>
           </Card>
         </Col>

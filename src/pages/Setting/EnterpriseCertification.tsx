@@ -73,8 +73,9 @@ const BasicForm: FC<Record<string, any>> = () => {
       province: values?.allArea[0],
       city: values?.allArea[1],
       area: values?.allArea[2],
-      businessLicense: businessLicense || imageUrl,
       powerOfAttorney: powerOfAttorney,
+      businessLicense:
+        (businessLicense && 'https://smscompany.bdcjx.com' + businessLicense) || imageUrl,
     };
     const result = await businessSubmit(payload);
     if (result.code === '200') {

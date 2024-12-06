@@ -60,6 +60,7 @@ const TableList: React.FC = () => {
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
   const [treeData, setTreeData] = useState([]);
   const [modalTitle, setModalTitle] = useState('新建角色');
+  const [halfCheckedKeys, setHalfCheckedKeys] = useState<React.Key[]>([]);
 
   const onExpand: TreeProps['onExpand'] = (expandedKeysValue) => {
     console.log('onExpand', expandedKeysValue);
@@ -69,6 +70,7 @@ const TableList: React.FC = () => {
   const onCheck: TreeProps['onCheck'] = (checkedKeys, e) => {
     console.log('onCheck', checkedKeys, e);
     setCheckedKeys(checkedKeys as React.Key[]);
+    setHalfCheckedKeys(e.halfCheckedKeys);
     // setCheckedMenuList([...checkedKeys, ...e.halfCheckedKeys])
   };
 
@@ -232,7 +234,7 @@ const TableList: React.FC = () => {
           console.log('onFinish', value);
           let payload = {
             ...value,
-            menuIdList: checkedKeys,
+            menuIdList: [...checkedKeys, ...halfCheckedKeys],
           };
           let result = {};
           if (modalTitle === '编辑角色') {
@@ -250,7 +252,7 @@ const TableList: React.FC = () => {
               actionRef.current.reload();
             }
           } else {
-            message.error(result.msg);
+            // message.error(result.msg);
           }
         }}
       >

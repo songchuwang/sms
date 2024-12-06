@@ -1,5 +1,5 @@
 import { outLogin } from '@/services/ant-design-pro/api';
-import { LogoutOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
+import { LogoutOutlined } from '@ant-design/icons';
 import { history, useModel } from '@umijs/max';
 import { Spin } from 'antd';
 import { createStyles } from 'antd-style';
@@ -7,7 +7,6 @@ import { stringify } from 'querystring';
 import type { MenuInfo } from 'rc-menu/lib/interface';
 import React, { useCallback } from 'react';
 import { flushSync } from 'react-dom';
-import HeaderDropdown from '../HeaderDropdown';
 
 export type GlobalHeaderRightProps = {
   menu?: boolean;
@@ -36,10 +35,16 @@ const useStyles = createStyles(({ token }) => {
         backgroundColor: token.colorBgTextHover,
       },
     },
+    logout_box: {
+      backgroundColor: '#2c3859',
+      '&:hover': {
+        backgroundColor: '#253056',
+      },
+    },
   };
 });
 
-export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, children }) => {
+export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({}) => {
   /**
    * 退出登录，并且将当前的 url 保存
    */
@@ -68,13 +73,14 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
   const onMenuClick = useCallback(
     (event: MenuInfo) => {
       const { key } = event;
-      if (key === 'logout') {
-        flushSync(() => {
-          setInitialState((s) => ({ ...s, currentUser: undefined }));
-        });
-        loginOut(initialState.currentUser);
-        return;
-      }
+      // if (key === 'logout') {
+      flushSync(() => {
+        setInitialState((s) => ({ ...s, currentUser: undefined }));
+      });
+      loginOut(initialState.currentUser);
+      localStorage.setItem('token', '');
+      return;
+      // }
       history.push(`/account/${key}`);
     },
     [setInitialState],
@@ -102,40 +108,57 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
     return loading;
   }
 
-  const menuItems = [
-    ...(menu
-      ? [
-          {
-            key: 'center',
-            icon: <UserOutlined />,
-            label: '个人中心',
-          },
-          {
-            key: 'settings',
-            icon: <SettingOutlined />,
-            label: '个人设置',
-          },
-          {
-            type: 'divider' as const,
-          },
-        ]
-      : []),
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: '退出登录',
-    },
-  ];
+  // const menuItems = [
+  //   ...(menu
+  //     ? [
+  //         {
+  //           key: 'center',
+  //           icon: <UserOutlined />,
+  //           label: '个人中心',
+  //         },
+  //         {
+  //           key: 'settings',
+  //           icon: <SettingOutlined />,
+  //           label: '个人设置',
+  //         },
+  //         {
+  //           type: 'divider' as const,
+  //         },
+  //       ]
+  //     : []),
+  //   {
+  //     key: 'logout',
+  //     icon: <LogoutOutlined />,
+  //     label: '退出登录',
+  //   },
+  // ];
 
   return (
-    <HeaderDropdown
-      menu={{
-        selectedKeys: [],
-        onClick: onMenuClick,
-        items: menuItems,
+    <div
+      className={styles.logout_box}
+      onClick={(e) => onMenuClick(e)}
+      style={{
+        width: 110,
+        height: 40,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxSizing: 'border-box',
+        cursor: 'pointer',
+        borderRadius: 8,
       }}
     >
-      {children}
-    </HeaderDropdown>
+      <LogoutOutlined style={{ color: '#ccc' }} />
+      <span style={{ marginLeft: 10, color: '#ccc' }}>退出登录</span>
+    </div>
+    // <HeaderDropdown
+    //   menu={{
+    //     selectedKeys: [],
+    //     onClick: onMenuClick,
+    //     items: menuItems,
+    //   }}
+    // >
+    //   {children}
+    // </HeaderDropdown>
   );
 };

@@ -167,6 +167,7 @@ const demoResponseInterceptors = (response: Response) => {
   if (response && response.data) {
     if (response.data.code !== '200') {
       if (response.data.code === '403') {
+        localStorage.setItem('token', '');
         history.push(loginPath);
       } else if (response.data.code === '5403') {
         history.push('/setting/enterpriseCertification');

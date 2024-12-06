@@ -224,6 +224,7 @@ const TableList: React.FC = () => {
           if (modalTitle === '编辑签名模板') {
             result = await handleSignUpdate({
               ...payload,
+              signId: currentRow.signId,
             });
           } else {
             result = await handleSignAdd(payload as API.RuleListItem);
@@ -235,7 +236,7 @@ const TableList: React.FC = () => {
               actionRef.current.reload();
             }
           } else {
-            message.error(result.msg);
+            // message.error(result.msg);
           }
         }}
       >

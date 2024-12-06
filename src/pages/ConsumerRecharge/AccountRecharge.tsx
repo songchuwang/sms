@@ -1,18 +1,28 @@
+import { getBusinessInfo } from '@/services/ant-design-pro/api';
 import { PageContainer } from '@ant-design/pro-components';
-import { useModel } from '@umijs/max';
 import { Card, Descriptions, Divider } from 'antd';
 import type { FC } from 'react';
+import { useEffect, useState } from 'react';
 const Basic: FC = () => {
-  const initialState = useModel('@@initialState');
-  const { currentUser } = initialState?.initialState || {};
+  // const initialState = useModel('@@initialState');
+  // const { currentUser } = initialState?.initialState || {};
+
+  const [businessInfo, setBusinessInfo] = useState({});
+
+  useEffect(() => {
+    getBusinessInfo().then((res) => {
+      const result = res.data;
+      setBusinessInfo(result);
+    });
+  }, []);
 
   return (
     <PageContainer>
       <Card bordered={false}>
         <h3>
-          企业账户：账户余额<span style={{ color: '#1890ff' }}>{currentUser?.balance}</span>
+          企业账户：账户余额<span style={{ color: '#1890ff' }}>{businessInfo?.balance}</span>
           元，短信剩余量：
-          <span style={{ color: '#1890ff' }}>{currentUser?.leftCount}</span>条。
+          <span style={{ color: '#1890ff' }}>{businessInfo?.leftCount}</span>条。
         </h3>
         <Descriptions
           title="第一步：请选择微信或支付宝扫码付款"

@@ -32,6 +32,13 @@ const IntroduceRow = ({
   //     },
   //   }
   // }
+
+  // const [size, setSize] = useState('small');
+
+  // const onChange = (e: RadioChangeEvent) => {
+  //   setSize(e.target.value);
+  // };
+
   return (
     <Row gutter={24}>
       <Col {...topColResponsiveProps}>
@@ -39,11 +46,16 @@ const IntroduceRow = ({
           bordered={false}
           loading={loading}
           title="发送短信（条）"
-          action={
-            <Tooltip title="指标说明">
-              <InfoCircleOutlined />
-            </Tooltip>
-          }
+          // action={
+          //   <Tooltip title="指标说明">
+          //     <InfoCircleOutlined />
+          //   </Tooltip>
+          //   <Radio.Group value={size} onChange={onChange} style={{ marginBottom: 16 }}>
+          //     <Radio.Button value="small">Small</Radio.Button>
+          //     <Radio.Button value="middle">Middle</Radio.Button>
+          //     <Radio.Button value="large">Large</Radio.Button>
+          //   </Radio.Group>
+          // }
           total={sendCountData
             .map((item) => item.sendCount)
             .reduce((accumulator, currentValue) => accumulator + currentValue, 0)}

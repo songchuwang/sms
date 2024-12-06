@@ -143,6 +143,12 @@ const TableList: React.FC = () => {
     },
     {
       title: '发送失败短信（条）',
+      dataIndex: 'processionCount',
+      valueType: 'textarea',
+      search: false,
+    },
+    {
+      title: '发送中',
       dataIndex: 'failCount',
       valueType: 'textarea',
       search: false,
@@ -180,7 +186,7 @@ const TableList: React.FC = () => {
           status: 'Processing',
         },
         2: {
-          text: '发送成功',
+          text: '已发送',
           status: 'Success',
         },
         3: {
