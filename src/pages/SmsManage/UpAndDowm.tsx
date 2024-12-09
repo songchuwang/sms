@@ -18,11 +18,6 @@ const goToPageWithParams = (mobile) => {
   history.push(`/smsManage/sendSms?mobile=${mobile}`);
 };
 
-/**
- * @en-US Add node
- * @zh-CN 添加节点
- * @param fields
- */
 const handleAdd = async (fields: API.RuleListItem) => {
   const hide = message.loading('正在添加');
   try {
@@ -80,6 +75,9 @@ const TableList: React.FC = () => {
       title: '短信内容',
       dataIndex: 'content',
       search: false,
+      render: (dom) => {
+        return <div style={{ maxWidth: 400, minWidth: 300 }}>{dom}</div>;
+      },
     },
     {
       title: '发送状态',
@@ -155,15 +153,13 @@ const TableList: React.FC = () => {
   return (
     <PageContainer>
       <ProTable<API.RuleListItem, API.PageParams>
-        headerTitle={'查询表格'}
+        // headerTitle={'查询表格'}
         actionRef={actionRef}
         rowKey="smsItemId"
         search={{
           labelWidth: 120,
         }}
-        toolBarRender={(value) => {
-          console.log('toolBarRender', value);
-
+        toolBarRender={() => {
           return [
             <Button
               type="primary"

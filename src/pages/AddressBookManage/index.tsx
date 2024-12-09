@@ -692,47 +692,50 @@ const Center: React.FC = () => {
                 <PlusOutlined /> 新建分组
               </Button>
 
-              {menuList.length
-                ? menuList.map((item) => {
-                    return (
-                      <div
-                        key={item.groupId}
-                        className={styles.menu_hover}
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          flex: 1,
-                          backgroundColor: item.groupId === groupProps.groupId ? '#e6f7ff' : '#fff',
-                        }}
-                        onClick={() => {
-                          updatePage(item);
-                        }}
-                      >
-                        <span>
-                          {item.groupName}({item.count})
-                        </span>
-                        <EditOutlined
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleCreateModalOpen(true);
-                            handleUpdateModalTitle('编辑通讯录分组');
-                            setCurrentGroupItem(item);
-                            console.log('_setCurrentGroupItem_', item);
-                            setTimeout(() => {
-                              if (createGroupRef.current) {
-                                createGroupRef.current.setFieldsValue(item);
-                              }
-                            }, 100);
+              <div style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+                {menuList.length
+                  ? menuList.map((item) => {
+                      return (
+                        <div
+                          key={item.groupId}
+                          className={styles.menu_hover}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flex: 1,
+                            backgroundColor:
+                              item.groupId === groupProps.groupId ? '#e6f7ff' : '#fff',
                           }}
-                          style={{ color: '#1890ff' }}
-                        />
-                      </div>
-                    );
-                  })
-                : null}
+                          onClick={() => {
+                            updatePage(item);
+                          }}
+                        >
+                          <span>
+                            {item.groupName}({item.count})
+                          </span>
+                          <EditOutlined
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleCreateModalOpen(true);
+                              handleUpdateModalTitle('编辑通讯录分组');
+                              setCurrentGroupItem(item);
+                              console.log('_setCurrentGroupItem_', item);
+                              setTimeout(() => {
+                                if (createGroupRef.current) {
+                                  createGroupRef.current.setFieldsValue(item);
+                                }
+                              }, 100);
+                            }}
+                            style={{ color: '#1890ff' }}
+                          />
+                        </div>
+                      );
+                    })
+                  : null}
+              </div>
 
               {/* <Menu
                 defaultSelectedKeys={['0']}

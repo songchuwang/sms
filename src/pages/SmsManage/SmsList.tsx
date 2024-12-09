@@ -136,13 +136,13 @@ const TableList: React.FC = () => {
       search: false,
     },
     {
-      title: '发送成功短信（条）',
+      title: '发送成功（条）',
       dataIndex: 'sucCount',
       valueType: 'textarea',
       search: false,
     },
     {
-      title: '发送失败短信（条）',
+      title: '发送失败（条）',
       dataIndex: 'processionCount',
       valueType: 'textarea',
       search: false,

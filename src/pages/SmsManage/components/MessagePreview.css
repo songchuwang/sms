@@ -25,7 +25,12 @@
     background-color: #ffffff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     position: relative;
+    max-height: 450px;
+    overflow-y: auto;
   }
+  /* .message-preview-card::-webket-scrollbar {
+    display: none;
+  } */
   
   .message-header {
     display: flex;

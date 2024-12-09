@@ -22,7 +22,7 @@ const Basic: FC = () => {
         <h3>
           企业账户：账户余额<span style={{ color: '#1890ff' }}>{businessInfo?.balance}</span>
           元，短信剩余量：
-          <span style={{ color: '#1890ff' }}>{businessInfo?.leftCount}</span>条。
+          <span style={{ color: '#1890ff' }}>{businessInfo?.leftCount}</span> 条。
         </h3>
         <Descriptions
           title="第一步：请选择微信或支付宝扫码付款"

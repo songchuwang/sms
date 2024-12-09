@@ -1,4 +1,5 @@
 import {
+  getBusinessInfo,
   getConsumptionLog,
   getLeftCount,
   getRechargeLog,
@@ -242,11 +243,18 @@ const Welcome: React.FC = () => {
   // const { token } = theme.useToken();
   const { initialState } = useModel('@@initialState');
 
-  console.log('initialState123', initialState);
-
   const { currentUser } = initialState || {};
 
   console.log('currentUser123', currentUser);
+
+  const [businessInfo, setBusinessInfo] = useState({});
+
+  useEffect(() => {
+    getBusinessInfo().then((res) => {
+      const result = res.data;
+      setBusinessInfo(result);
+    });
+  }, []);
 
   // 近期消费记录
   const [consumptionData, setConsumptionData] = useState([]); // 企业消费图表
@@ -397,17 +405,14 @@ const Welcome: React.FC = () => {
         <PageHeaderContent
           currentUser={{
             avatar: 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png',
-            account: currentUser?.account,
-            name: currentUser?.name,
-            userid: '00000001',
-            email: 'antdesign@alipay.com',
-            signature: '海纳百川，有容乃大',
+            account: businessInfo?.account,
+            name: businessInfo?.name,
             title: '交互专家',
             address: `${
-              currentUser?.province === currentUser?.city
-                ? currentUser?.province
-                : currentUser?.province + currentUser?.city
-            }${currentUser?.area}${currentUser?.address}`,
+              businessInfo?.province === businessInfo?.city
+                ? businessInfo?.province
+                : businessInfo?.province + businessInfo?.city
+            }${businessInfo?.area}${businessInfo?.address}`,
           }}
         />
       }

@@ -25,10 +25,8 @@ const Settings: ProLayoutProps & {
     sider: {
       // 折叠按钮的背景颜色（深色蓝）
       colorBgCollapsedButton: '#1b263b',
-
       // 折叠按钮悬停时的文本颜色（白色）
       colorTextCollapsedButtonHover: '#ffffff',
-
       // 折叠按钮的默认文本颜色（浅灰色，适应深色背景）
       colorTextCollapsedButton: '#b2b2b2',
 

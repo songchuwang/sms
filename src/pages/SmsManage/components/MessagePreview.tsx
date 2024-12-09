@@ -8,10 +8,6 @@ const MessagePreview = ({ content, title }) => {
     <div className="phone-frame">
       {title || content ? (
         <Card className="message-preview-card">
-          {/* <div className="message-header">
-          <Text className="message-sender">{sender}</Text>
-          <Text className="message-timestamp">{new Date(timestamp).toLocaleString()}</Text>
-        </div> */}
           <Text className="message-content">
             {title.trim() ? `【${title}】` : ''} {content}
           </Text>

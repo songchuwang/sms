@@ -338,6 +338,7 @@ const Center: React.FC = () => {
               proFormRef.current.setFieldsValue({
                 content: record.content,
               });
+              message.success('应用成功');
             }
             // handleModalOpen(true);
             // setModalTitle('编辑模板');
@@ -363,6 +364,7 @@ const Center: React.FC = () => {
             bordered={false}
             style={{
               marginBottom: 24,
+              height: 715,
             }}
             loading={false}
           >
@@ -824,26 +826,39 @@ const Center: React.FC = () => {
             let uniqueObjects = [...map.values()];
 
             setNumberPool(uniqueObjects);
+            // message.success('添加成功')
           }
         }}
       >
-        <Search style={{ marginBottom: 8 }} placeholder="Search" onChange={onChange} />
-        <Tree
-          checkable
-          onExpand={onExpand}
-          expandedKeys={expandedKeys}
-          autoExpandParent={true}
-          defaultExpandAll={true}
-          onCheck={onCheck}
-          checkedKeys={checkedKeys}
-          onSelect={onSelect}
-          selectedKeys={selectedKeys}
-          treeData={filterWord ? filterData : treeData}
-          fieldNames={{
-            title: 'itemConNumber',
-            key: 'groupId',
-          }}
+        <Search
+          style={{ marginBottom: 8 }}
+          suffix={false}
+          placeholder="Search"
+          onChange={onChange}
         />
+        <div
+          style={{
+            maxHeight: 350,
+            overflowY: 'auto',
+          }}
+        >
+          <Tree
+            checkable
+            onExpand={onExpand}
+            expandedKeys={expandedKeys}
+            autoExpandParent={true}
+            defaultExpandAll={true}
+            onCheck={onCheck}
+            checkedKeys={checkedKeys}
+            onSelect={onSelect}
+            selectedKeys={selectedKeys}
+            treeData={filterWord ? filterData : treeData}
+            fieldNames={{
+              title: 'itemConNumber',
+              key: 'groupId',
+            }}
+          />
+        </div>
       </Modal>
       <ModalForm
         title={modalTitle}
