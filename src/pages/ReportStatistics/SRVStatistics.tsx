@@ -15,10 +15,11 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
+import { useModel } from '@umijs/max';
 import type { TabsProps } from 'antd';
 import { Button, Drawer, message, Tabs } from 'antd';
 import moment from 'moment';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 
@@ -70,10 +71,13 @@ const handleUpdate = async (fields: FormValueType) => {
 };
 
 const TableList: React.FC = () => {
-  /**
-   * @en-US Pop-up window of new window
-   * @zh-CN 新建窗口的弹窗
-   *  */
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  const [auth, setAuth] = useState([]);
+  useEffect(() => {
+    setAuth(currentUser?.perms || []);
+  }, []);
+
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
   /**
    * @en-US The pop-up window of the distribution update window
@@ -273,6 +277,7 @@ const TableList: React.FC = () => {
         }
         toolBarRender={() => [
           <Button
+            hidden={auth.includes('business:report:sendorreceive:page') ? false : true}
             type="primary"
             key="primary"
             onClick={() => {

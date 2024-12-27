@@ -21,9 +21,10 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
+import { useModel } from '@umijs/max';
 import { Button, Col, Drawer, message, Popconfirm, Row, Space } from 'antd';
 import moment from 'moment';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 /**
@@ -55,8 +56,13 @@ const formItemLayout = {
   wrapperCol: { span: 18 },
 };
 const TableList: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  const [auth, setAuth] = useState([]);
+  useEffect(() => {
+    setAuth(currentUser?.perms || []);
+  }, []);
   const modalFormRef = useRef<ProFormInstance>();
-
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
@@ -117,6 +123,7 @@ const TableList: React.FC = () => {
       render: (_, record) => [
         <a
           key="config"
+          hidden={auth.includes('business:sms:template:update') ? false : true}
           onClick={() => {
             handleModalOpen(true);
             setModalTitle('编辑模板');
@@ -143,7 +150,7 @@ const TableList: React.FC = () => {
             }
           }}
         >
-          <a>删除</a>
+          <a hidden={auth.includes('business:sms:template:delete') ? false : true}>删除</a>
         </Popconfirm>,
       ],
     },
@@ -162,6 +169,7 @@ const TableList: React.FC = () => {
           <Button
             type="primary"
             key="primary"
+            hidden={auth.includes('business:sms:template:add') ? false : true}
             onClick={() => {
               handleModalOpen(true);
               if (modalFormRef.current) {
@@ -170,10 +178,15 @@ const TableList: React.FC = () => {
               }
             }}
           >
-            <PlusOutlined /> 新增模板
+            <PlusOutlined /> 新增短信模板
           </Button>,
         ]}
-        request={getTempList}
+        request={(params) => {
+          if (!auth.includes('business:sms:template:page')) {
+            return [];
+          }
+          return getTempList(params);
+        }}
         columns={columns}
         rowSelection={false}
       />

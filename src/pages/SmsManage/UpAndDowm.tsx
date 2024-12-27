@@ -6,7 +6,8 @@ import '@umijs/max';
 import { Button, Input, message } from 'antd';
 import moment from 'moment';
 
-import React, { useRef, useState } from 'react';
+import { useModel } from '@umijs/max';
+import React, { useEffect, useRef, useState } from 'react';
 import { history } from 'umi';
 
 const { TextArea } = Input;
@@ -35,6 +36,12 @@ const handleAdd = async (fields: API.RuleListItem) => {
 };
 
 const TableList: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  const [auth, setAuth] = useState([]);
+  useEffect(() => {
+    setAuth(currentUser?.perms || []);
+  }, []);
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   // const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
@@ -84,21 +91,13 @@ const TableList: React.FC = () => {
       dataIndex: 'state',
       hideInForm: true,
       valueEnum: {
-        PROCESSING: {
-          text: '处理中',
-          status: 'Processing',
-        },
         DELIVRD: {
           text: '发送成功',
           status: 'Success',
         },
         ERROR: {
-          text: '异常错误',
+          text: '发送失败',
           status: 'Error',
-        },
-        TIMEOUT: {
-          text: '超时未接收到',
-          status: 'Default',
         },
       },
     },
@@ -122,32 +121,35 @@ const TableList: React.FC = () => {
         );
       },
     },
-    {
-      title: '回复内容',
-      dataIndex: 'replyContent',
-      search: false,
-    },
-    {
-      title: '回复时间',
-      dataIndex: 'replyTime',
-      valueType: 'dateTime',
-      search: false,
-    },
+    // {
+    //   title: '回复内容',
+    //   dataIndex: 'replyContent',
+    //   search: false,
+    // },
+    // {
+    //   title: '回复时间',
+    //   dataIndex: 'replyTime',
+    //   valueType: 'dateTime',
+    //   search: false,
+    // },
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      render: (_, record) => [
-        <a
-          key="config"
-          onClick={() => {
-            console.log('操作', _, record);
-            goToPageWithParams(record.mobile);
-          }}
-        >
-          回复
-        </a>,
-      ],
+      render: (_, record) =>
+        auth.includes('business:sms:item:reply')
+          ? [
+              <a
+                key="config"
+                onClick={() => {
+                  console.log('操作', _, record);
+                  goToPageWithParams(record.mobile);
+                }}
+              >
+                回复
+              </a>,
+            ]
+          : [],
     },
   ];
   return (
@@ -164,6 +166,7 @@ const TableList: React.FC = () => {
             <Button
               type="primary"
               key="primary"
+              hidden={auth.includes('business:sms:item:reply') ? false : true}
               onClick={() => {
                 if (!selectedRowsKeysState.length) {
                   message.warning('请先勾选行数据');
@@ -179,6 +182,7 @@ const TableList: React.FC = () => {
             <Button
               type="primary"
               key="primary"
+              hidden={auth.includes('business:sms:item:export') ? false : true}
               onClick={() => {
                 handleDownLoadFile();
               }}
@@ -187,14 +191,28 @@ const TableList: React.FC = () => {
             </Button>,
           ];
         }}
-        request={(params) => {
+        request={async (params) => {
           console.log('paramsparams', params);
           // 存储一份查询参数，用于导出文件获取
           let downloadFileParams = JSON.parse(JSON.stringify(params));
           delete downloadFileParams.current;
           delete downloadFileParams.pageSize;
           saveDownloadFileParams(downloadFileParams);
-          return getSmsItemList(params);
+          if (!auth.includes('business:sms:item:page')) {
+            return [];
+          }
+          let result = await getSmsItemList(params);
+          const dataList = result.data;
+          // let valueEnumKeys = ['PROCESSING','DELIVRD','ERROR','TIMEOUT']
+          dataList.map((item) => {
+            if (item.state !== 'DELIVRD') {
+              item.state = 'ERROR';
+              return item;
+            }
+            return item;
+          });
+          console.log('result123', result, dataList);
+          return result;
         }}
         columns={columns}
         rowSelection={{

@@ -3,9 +3,10 @@ import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import { PageContainer, ProDescriptions, ProTable } from '@ant-design/pro-components';
 import '@umijs/max';
+import { useModel } from '@umijs/max';
 import { Button, Drawer, message } from 'antd';
 import moment from 'moment';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 
@@ -36,6 +37,12 @@ const handleUpdate = async (fields: FormValueType) => {
 };
 
 const TableList: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  const [auth, setAuth] = useState([]);
+  useEffect(() => {
+    setAuth(currentUser?.perms || []);
+  }, []);
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
@@ -105,6 +112,7 @@ const TableList: React.FC = () => {
           <Button
             type="primary"
             key="primary"
+            hidden={auth.includes('business:consumption:export') ? false : true}
             onClick={() => {
               handleDownLoadFile();
             }}

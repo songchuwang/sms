@@ -10,10 +10,11 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
+import { useModel } from '@umijs/max';
 import type { TabsProps } from 'antd';
 import { Button, Drawer, message, Tabs } from 'antd';
 import moment from 'moment';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 const downLoadUrl = '/api/v1/admin/business/report/recharge/export';
@@ -64,6 +65,12 @@ const handleUpdate = async (fields: FormValueType) => {
 };
 
 const TableList: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  const [auth, setAuth] = useState([]);
+  useEffect(() => {
+    setAuth(currentUser?.perms || []);
+  }, []);
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
@@ -243,6 +250,7 @@ const TableList: React.FC = () => {
         }
         toolBarRender={() => [
           <Button
+            hidden={auth.includes('business:report:recharge:export') ? false : true}
             type="primary"
             key="primary"
             onClick={() => {

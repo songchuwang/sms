@@ -29,6 +29,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
+import { useModel } from '@umijs/max';
 import { Button, Card, Col, message, Popconfirm, Row, Space } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useEffect, useRef, useState } from 'react';
@@ -97,6 +98,12 @@ const handleAdd = async (fields: API.RuleListItem) => {
 };
 
 const TableList: React.FC = (props) => {
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  const [auth, setAuth] = useState([]);
+  useEffect(() => {
+    setAuth(currentUser?.perms || []);
+  }, []);
   const [examineModalOpen, handleExamineModalOpen] = useState<boolean>(false);
 
   const [notesModalOpen, handleNotesModalOpen] = useState<boolean>(false);
@@ -177,6 +184,7 @@ const TableList: React.FC = (props) => {
       render: (_, record) => [
         <a
           key="edit"
+          hidden={auth.includes('business:address:book:update') ? false : true}
           onClick={() => {
             handleContactModalOpen(true);
             setContactTitle('编辑联系人');
@@ -205,7 +213,7 @@ const TableList: React.FC = (props) => {
             }
           }}
         >
-          <a>删除</a>
+          <a hidden={auth.includes('business:address:book:delete') ? false : true}>删除</a>
         </Popconfirm>,
       ],
     },
@@ -217,7 +225,7 @@ const TableList: React.FC = (props) => {
   return (
     <PageContainer>
       <ProTable<API.RuleListItem, API.PageParams>
-        headerTitle={'查询表格'}
+        // headerTitle={'查询表格'}
         actionRef={actionRef}
         rowKey="id"
         search={{
@@ -227,6 +235,7 @@ const TableList: React.FC = (props) => {
           <Button
             type="primary"
             key="primary"
+            hidden={auth.includes('business:address:book:add') ? false : true}
             onClick={() => {
               handleContactModalOpen(true);
               setCurrentRow(undefined);
@@ -239,6 +248,7 @@ const TableList: React.FC = (props) => {
             <PlusOutlined /> 添加联系人
           </Button>,
           <Button
+            hidden={auth.includes('business:address:book:move') ? false : true}
             type="primary"
             key="primary"
             onClick={() => {
@@ -280,11 +290,16 @@ const TableList: React.FC = (props) => {
               // }
             }}
           >
-            <Button type="primary" key="primary">
+            <Button
+              hidden={auth.includes('business:address:book:delete') ? false : true}
+              type="primary"
+              key="primary"
+            >
               <DeleteOutlined /> 批量删除
             </Button>
           </Popconfirm>,
           <Button
+            hidden={auth.includes('business:address:book:export') ? false : true}
             type="primary"
             key="primary"
             onClick={() => {
@@ -611,6 +626,12 @@ const TableList: React.FC = (props) => {
 };
 
 const Center: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  const [auth, setAuth] = useState([]);
+  useEffect(() => {
+    setAuth(currentUser?.perms || []);
+  }, []);
   const { styles } = useStyles();
   const [createModalOpen, handleCreateModalOpen] = useState<boolean>(false);
 
@@ -680,6 +701,7 @@ const Center: React.FC = () => {
               <Button
                 type="primary"
                 key="primary"
+                hidden={auth.includes('business:address:book:group:add') ? false : true}
                 style={{ marginBottom: 15 }}
                 onClick={() => {
                   handleCreateModalOpen(true);
@@ -716,6 +738,9 @@ const Center: React.FC = () => {
                             {item.groupName}({item.count})
                           </span>
                           <EditOutlined
+                            hidden={
+                              auth.includes('business:address:book:group:update') ? false : true
+                            }
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();

@@ -3,13 +3,20 @@ import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
 import '@umijs/max';
+import { useModel } from '@umijs/max';
 import { Button } from 'antd';
 import moment from 'moment';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const downLoadUrl = '/api/v1/admin/business/recharge/log/export';
 
 const TableList: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  const [auth, setAuth] = useState([]);
+  useEffect(() => {
+    setAuth(currentUser?.perms || []);
+  }, []);
   const actionRef = useRef<ActionType>();
   const [downloadFileParams, saveDownloadFileParams] = useState({});
 
@@ -63,6 +70,7 @@ const TableList: React.FC = () => {
         options={false}
         toolBarRender={() => [
           <Button
+            hidden={auth.includes('business:recharge:log:export') ? false : true}
             type="primary"
             key="primary"
             onClick={() => {

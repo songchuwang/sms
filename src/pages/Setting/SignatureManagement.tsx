@@ -21,8 +21,9 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
+import { useModel } from '@umijs/max';
 import { Button, Col, Drawer, Input, message, Popconfirm, Row, Space } from 'antd';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 
@@ -55,6 +56,12 @@ const formItemLayout = {
   wrapperCol: { span: 18 },
 };
 const TableList: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  const [auth, setAuth] = useState([]);
+  useEffect(() => {
+    setAuth(currentUser?.perms || []);
+  }, []);
   const modalFormRef = useRef<ProFormInstance>();
   /**
    * @en-US Pop-up window of new window
@@ -136,6 +143,7 @@ const TableList: React.FC = () => {
       render: (_, record) => [
         <a
           key="config"
+          hidden={auth.includes('business:sms:sign:update') ? false : true}
           onClick={() => {
             handleModalOpen(true);
             setModalTitle('编辑签名模板');
@@ -162,7 +170,7 @@ const TableList: React.FC = () => {
             }
           }}
         >
-          <a>删除</a>
+          <a hidden={auth.includes('business:sms:sign:delete') ? false : true}>删除</a>
         </Popconfirm>,
       ],
     },
@@ -170,7 +178,7 @@ const TableList: React.FC = () => {
   return (
     <PageContainer>
       <ProTable<API.RuleListItem, API.PageParams>
-        headerTitle={'查询表格'}
+        // headerTitle={'查询表格'}
         actionRef={actionRef}
         rowKey="key"
         search={{
@@ -181,6 +189,7 @@ const TableList: React.FC = () => {
           <Button
             type="primary"
             key="primary"
+            hidden={auth.includes('business:sms:sign:add') ? false : true}
             onClick={() => {
               handleModalOpen(true);
               if (modalFormRef.current) {
@@ -189,10 +198,15 @@ const TableList: React.FC = () => {
               }
             }}
           >
-            <PlusOutlined /> 新增模板
+            <PlusOutlined /> 新增签名模板
           </Button>,
         ]}
-        request={getSignatureList}
+        request={async (params) => {
+          if (!auth.includes('business:sms:sign:page')) {
+            return [];
+          }
+          return getSignatureList(params);
+        }}
         columns={columns}
         rowSelection={false}
       />

@@ -16,9 +16,10 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
+import { useModel } from '@umijs/max';
 import { Drawer, message } from 'antd';
 import moment from 'moment';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 
@@ -68,9 +69,17 @@ const handleUpdate = async (fields: FormValueType) => {
 };
 
 const TableList: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  const [auth, setAuth] = useState([]);
+  useEffect(() => {
+    setAuth(currentUser?.perms || []);
+  }, []);
   const actionDesRef = useRef<ProDescriptionsActionType>();
 
   const drawerRef = useRef();
+
+  const smsFormRef = useRef();
 
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
 
@@ -143,13 +152,13 @@ const TableList: React.FC = () => {
     },
     {
       title: '发送失败（条）',
-      dataIndex: 'processionCount',
+      dataIndex: 'failCount',
       valueType: 'textarea',
       search: false,
     },
     {
       title: '发送中',
-      dataIndex: 'failCount',
+      dataIndex: 'processionCount',
       valueType: 'textarea',
       search: false,
     },
@@ -209,7 +218,7 @@ const TableList: React.FC = () => {
       valueType: 'option',
       render: (_, record) => {
         let option = [];
-        if (record.status === 0) {
+        if (record.status === 0 && auth.includes('business:sms:check')) {
           option.push(
             <a
               key="config"
@@ -246,24 +255,24 @@ const TableList: React.FC = () => {
   return (
     <PageContainer>
       <ProTable<API.RuleListItem, API.PageParams>
-        headerTitle={'查询表格'}
+        // headerTitle={'查询表格'}
         actionRef={actionRef}
         rowKey="key"
         search={{
           labelWidth: 120,
         }}
-        toolBarRender={() => [
-          // <Button
-          //   type="primary"
-          //   key="primary"
-          //   onClick={() => {
-          //     handleModalOpen(true);
-          //   }}
-          // >
-          //   <PlusOutlined /> 新建
-          // </Button>,
-        ]}
-        request={getSmsList}
+        toolBarRender={() => []}
+        request={(params) => {
+          // let payload = {
+          //   ...params,
+          //   pageNum: params.current,
+          // };
+          // delete payload.current;
+          if (!auth.includes('business:sms:page')) {
+            return [];
+          }
+          return getSmsList(params);
+        }}
         columns={columns}
         rowSelection={false}
       />
@@ -297,6 +306,7 @@ const TableList: React.FC = () => {
       <ModalForm
         title={'短信审核'}
         width="400px"
+        formRef={smsFormRef}
         open={examineModalOpen}
         onOpenChange={handleExamineModalOpen}
         onValuesChange={(changeValues) => {
@@ -321,6 +331,9 @@ const TableList: React.FC = () => {
             }
           } else {
             message.error(result.msg);
+          }
+          if (smsFormRef.current) {
+            smsFormRef.current.resetFields();
           }
           handleExamineModalOpen(false);
         }}

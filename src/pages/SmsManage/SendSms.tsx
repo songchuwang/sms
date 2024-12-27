@@ -215,6 +215,7 @@ const Center: React.FC = () => {
         return {
           label: item.name,
           value: item.signId,
+          content: item.signName,
         };
       });
       setSignList(result);
@@ -229,7 +230,7 @@ const Center: React.FC = () => {
     console.log('onSignChange', signList, value);
     signList.map((item) => {
       if (item.value === value) {
-        setCurrentSign(item.label);
+        setCurrentSign(item.content);
       }
       return item;
     });
@@ -392,7 +393,6 @@ const Center: React.FC = () => {
                 onFinish={async (values) => {
                   let smsPayload = {
                     content: values.content,
-
                     sendSmsItemList: numberPoolDataSource.map((item) => {
                       return {
                         mobile: item.mobile,

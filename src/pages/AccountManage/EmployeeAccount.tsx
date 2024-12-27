@@ -22,6 +22,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
+import { useModel } from '@umijs/max';
 import { Button, Col, Drawer, Input, message, Popconfirm, Row, Space } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -30,6 +31,12 @@ const formItemLayout = {
   wrapperCol: { span: 18 },
 };
 const TableList: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  const [auth, setAuth] = useState([]);
+  useEffect(() => {
+    setAuth(currentUser?.perms || []);
+  }, []);
   const modalFormRef = useRef<ProFormInstance>();
   /**
    * @en-US Pop-up window of new window
@@ -42,19 +49,33 @@ const TableList: React.FC = () => {
    * */
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
-  const [roles, setRoles] = useState({});
+  const [currentRow, setCurrentRow] = useState<API.RuleListItem>(undefined);
+  const [roles, setRoles] = useState([]);
   const [modalTitle, setModalTitle] = useState('新建账户');
 
   useEffect(() => {
     getPlatformRoleList().then((res) => {
-      let valueEnum = {};
+      // let valueEnum = {}
+      let arr = [];
       res.data.map((item) => {
-        valueEnum[item.roleId] = item.roleName;
-        return item;
+        return arr.push({
+          label: item.roleName,
+          value: item.roleId,
+        });
       });
-      setRoles(valueEnum);
+
+      console.log('valueEnum123', arr);
+
+      setRoles(arr);
     });
+    // getPlatformRoleList().then((res) => {
+    //   let valueEnum = {};
+    //   res.data.map((item) => {
+    //     valueEnum[item.roleId] = item.roleName;
+    //     return item;
+    //   });
+    //   setRoles(valueEnum);
+    // });
   }, []);
 
   /**
@@ -125,12 +146,17 @@ const TableList: React.FC = () => {
         let renderArr = [
           <a
             key="config"
+            hidden={auth.includes('business:user:update') ? false : true}
             onClick={() => {
               handleModalOpen(true);
               setModalTitle('编辑账户');
               setTimeout(() => {
                 if (modalFormRef.current) {
-                  modalFormRef.current.setFieldsValue(record);
+                  let roleIdList = record.roles[0].roleId;
+                  modalFormRef.current.setFieldsValue({
+                    ...record,
+                    roleIdList: roleIdList,
+                  });
                   setCurrentRow(record);
                 }
               });
@@ -153,7 +179,7 @@ const TableList: React.FC = () => {
                 }
               }}
             >
-              <a>删除</a>
+              <a hidden={auth.includes('business:user:delete') ? false : true}>删除</a>
             </Popconfirm>,
           );
         }
@@ -170,7 +196,7 @@ const TableList: React.FC = () => {
                 }
               }}
             >
-              <a>禁用</a>
+              <a hidden={auth.includes('business:user:disable') ? false : true}>禁用</a>
             </Popconfirm>,
           );
         } else {
@@ -186,7 +212,7 @@ const TableList: React.FC = () => {
                 }
               }}
             >
-              <a>启用</a>
+              <a hidden={auth.includes('business:user:enable') ? false : true}>启用</a>
             </Popconfirm>,
           );
         }
@@ -208,6 +234,7 @@ const TableList: React.FC = () => {
           <Button
             type="primary"
             key="primary"
+            hidden={auth.includes('business:user:add') ? false : true}
             onClick={() => {
               setCurrentRow(undefined);
               setTimeout(() => {
@@ -222,7 +249,12 @@ const TableList: React.FC = () => {
             <PlusOutlined /> 创建账号
           </Button>,
         ]}
-        request={getEmployeeList}
+        request={(params) => {
+          if (!auth.includes('business:user:page')) {
+            return [];
+          }
+          return getEmployeeList(params);
+        }}
         columns={columns}
         rowSelection={false}
       />
@@ -264,12 +296,13 @@ const TableList: React.FC = () => {
           }
           if (result.code === '200') {
             message.success(modalTitle === '编辑账户' ? '修改成功' : '创建成功');
-            handleModalOpen(false);
             if (actionRef.current) {
+              setCurrentRow(undefined);
               actionRef.current.reload();
+              handleModalOpen(false);
             }
           } else {
-            message.error(result.msg);
+            // message.error(result.msg);
           }
         }}
       >
@@ -311,7 +344,7 @@ const TableList: React.FC = () => {
           name="phoneNumber"
         />
         <ProFormText label="职位" width="md" name="job" />
-        <ProFormSelect
+        {/* <ProFormSelect
           rules={[
             {
               required: true,
@@ -323,6 +356,20 @@ const TableList: React.FC = () => {
           label="角色"
           valueEnum={roles}
           value={currentRow?.roleNames}
+        /> */}
+        <ProFormSelect
+          rules={[
+            {
+              required: true,
+              message: '请勾选角色',
+            },
+          ]}
+          name="roleIdList"
+          width="md"
+          label="角色"
+          options={roles}
+          // valueEnum={roles}
+          initialValue={currentRow?.roleNames}
         />
         {modalTitle === '新建账户' ? (
           <ProFormText

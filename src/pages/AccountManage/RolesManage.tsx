@@ -21,9 +21,10 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
+import { useModel } from '@umijs/max';
 import type { TreeProps } from 'antd';
 import { Button, Col, Drawer, Form, Input, message, Popconfirm, Row, Space, Tree } from 'antd';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 /**
@@ -55,6 +56,12 @@ const formItemLayout = {
   wrapperCol: { span: 18 },
 };
 const TableList: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  const [auth, setAuth] = useState([]);
+  useEffect(() => {
+    setAuth(currentUser?.perms || []);
+  }, []);
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
@@ -143,6 +150,7 @@ const TableList: React.FC = () => {
         let renderArr = [
           <a
             key="config"
+            hidden={auth.includes('business:role:update') ? false : true}
             onClick={async () => {
               handleModalOpen(true);
               setModalTitle('编辑角色');
@@ -173,7 +181,7 @@ const TableList: React.FC = () => {
               }
             }}
           >
-            <a>删除</a>
+            <a hidden={auth.includes('business:role:delete') ? false : true}>删除</a>
           </Popconfirm>,
         ];
         return renderArr;
@@ -194,6 +202,7 @@ const TableList: React.FC = () => {
           <Button
             type="primary"
             key="primary"
+            hidden={auth.includes('business:role:add') ? false : true}
             onClick={async () => {
               let res = await getMenuList();
               if (modalFormRef.current) {
@@ -232,6 +241,7 @@ const TableList: React.FC = () => {
         }}
         onFinish={async (value) => {
           console.log('onFinish', value);
+          console.log('menuIdList', checkedKeys, halfCheckedKeys);
           let payload = {
             ...value,
             menuIdList: [...checkedKeys, ...halfCheckedKeys],
